@@ -1,11 +1,17 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * Gera um token JWT
+ */
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_EXPIRES_IN
   });
 };
 
+/**
+ * Envia resposta com token JWT em cookie
+ */
 const sendTokenResponse = (user, statusCode, res) => {
   const token = generateToken(user._id);
 
