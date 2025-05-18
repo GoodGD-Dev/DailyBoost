@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import authService from '../../../features/Auth/services/authService'
+import authService from '@features/Auth/services/authService'
 
 // Interface para o estado de autenticação
 interface AuthState {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAppSelector } from '../../../core/store/hooks'
+import { useAppSelector } from '@core/store/hooks'
 
 const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, loading } = useAppSelector((state) => state.auth)

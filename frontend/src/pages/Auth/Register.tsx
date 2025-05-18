@@ -2,11 +2,11 @@ import React, { useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { useAppDispatch, useAppSelector } from '../core/store/hooks'
-import { register, clearError } from '../core/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@core/store/hooks'
+import { register, clearError } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
-import FormButton from '../features/Auth/components/FormButton'
-import GoogleButton from '../features/Auth/components/GoogleButton'
+import FormButton from '@features/Auth/components/FormButton'
+import GoogleButton from '@features/Auth/components/GoogleButton'
 import { motion } from 'framer-motion'
 
 const Register: React.FC = () => {
@@ -14,7 +14,6 @@ const Register: React.FC = () => {
   const navigate = useNavigate()
   const { loading, error } = useAppSelector((state) => state.auth)
 
-  // Exibir erro no toast, se houver
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -53,9 +52,7 @@ const Register: React.FC = () => {
           'Registro realizado com sucesso. Verifique seu email para confirmação.'
         )
         navigate('/login')
-      } catch (error) {
-        // Erro já tratado no useEffect
-      }
+      } catch (error) {}
     }
   })
 

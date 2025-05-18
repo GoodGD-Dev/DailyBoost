@@ -1,8 +1,8 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
-import { useAppSelector } from '../../../core/store/hooks'
-import Navbar from '../components/Navbar'
-import Footer from '../components/Footer'
+import { useAppSelector } from '@core/store/hooks'
+import Navbar from './Navbar'
+import Footer from './Footer'
 
 const Layout: React.FC = () => {
   const { isAuthenticated } = useAppSelector((state) => state.auth)

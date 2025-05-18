@@ -1,14 +1,11 @@
-// src/services/authService.ts
 import axios from 'axios'
-import { auth } from '../config/firebase'
+import { auth } from '@core/config/firebase'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
-// Configuração do Axios com credenciais
 axios.defaults.withCredentials = true
 
-// Tipo para usuário retornado pela API
 interface User {
   id: string
   name: string
@@ -16,13 +13,11 @@ interface User {
   isEmailVerified: boolean
 }
 
-// Tipo para credenciais de login
 interface LoginCredentials {
   email: string
   password: string
 }
 
-// Tipo para dados de registro
 interface RegisterData {
   name: string
   email: string

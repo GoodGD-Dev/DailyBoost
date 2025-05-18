@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '../core/store/hooks'
-import { verifyEmail, clearError } from '../core/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@core/store/hooks'
+import { verifyEmail, clearError } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 
@@ -17,7 +17,6 @@ const VerifyEmail: React.FC = () => {
   const [verificationInProgress, setVerificationInProgress] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
 
-  // Exibir erro no toast, se houver
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -53,7 +52,7 @@ const VerifyEmail: React.FC = () => {
           setVerified(true)
           toast.success('Email verificado com sucesso!')
 
-          // ADICIONE AQUI: Limpar o token da URL após a verificação
+          // Limpar o token da URL após a verificação
           if (window.history.replaceState) {
             const newUrl = window.location.pathname.replace(
               `/verify-email/${token}`,
@@ -63,7 +62,6 @@ const VerifyEmail: React.FC = () => {
           }
         } catch (error: any) {
           console.error('Erro na verificação:', error)
-          // Erro já tratado no useEffect acima
         } finally {
           setVerificationAttempted(true)
           setVerificationInProgress(false)

@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
-import { useAppDispatch } from '../../../core/store/hooks'
-import { googleLogin } from '../../../core/store/slices/authSlice'
+import { useAppDispatch } from '@core/store/hooks'
+import { googleLogin } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
-import { auth } from '../config/firebase'
+import { auth } from '@core/config/firebase'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { motion } from 'framer-motion'
 

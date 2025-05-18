@@ -1,5 +1,5 @@
 import React from 'react'
-import { useAppSelector } from '../core/store/hooks'
+import { useAppSelector } from '@core/store/hooks'
 import { motion } from 'framer-motion'
 
 const Dashboard: React.FC = () => {

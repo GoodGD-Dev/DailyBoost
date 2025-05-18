@@ -1,19 +1,17 @@
-// src/pages/Login.tsx
 import React, { useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { useAppDispatch, useAppSelector } from '../core/store/hooks'
-import { login, clearError } from '../core/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@core/store/hooks'
+import { login, clearError } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import GoogleButton from '../features/Auth/components/GoogleButton'
+import GoogleButton from '@features/Auth/components/GoogleButton'
 
 const Login: React.FC = () => {
   const dispatch = useAppDispatch()
   const { loading, error } = useAppSelector((state) => state.auth)
 
-  // Exibir erro no toast, se houver
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -38,9 +36,7 @@ const Login: React.FC = () => {
       try {
         await dispatch(login(values)).unwrap()
         toast.success('Login realizado com sucesso')
-      } catch (error) {
-        // Erro já tratado no useEffect
-      }
+      } catch (error) {}
     }
   })
 

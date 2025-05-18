@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { useFormik } from 'formik'
 import * as Yup from 'yup'
-import { useAppDispatch, useAppSelector } from '../core/store/hooks'
-import { resetPassword, clearError } from '../core/store/slices/authSlice'
+import { useAppDispatch, useAppSelector } from '@core/store/hooks'
+import { resetPassword, clearError } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
-import FormButton from '../features/Auth/components/FormButton'
+import FormButton from '@features/Auth/components/FormButton'
 import { motion } from 'framer-motion'
 
 const ResetPassword: React.FC = () => {
@@ -15,7 +15,6 @@ const ResetPassword: React.FC = () => {
   const { loading, error } = useAppSelector((state) => state.auth)
   const [isSuccess, setIsSuccess] = useState(false)
 
-  // Exibir erro no toast, se houver
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -54,9 +53,7 @@ const ResetPassword: React.FC = () => {
         setTimeout(() => {
           navigate('/login')
         }, 3000)
-      } catch (error) {
-        // Erro já tratado no useEffect
-      }
+      } catch (error) {}
     }
   })
 
