@@ -3,7 +3,6 @@ import { auth } from '@core/config/firebase'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
 axios.defaults.withCredentials = true
 
 interface User {
@@ -24,12 +23,12 @@ interface RegisterData {
   password: string
 }
 
-// Registrar um novo usuário
-const register = async (
-  userData: RegisterData
-): Promise<{ message: string }> => {
+// Registrar um novo usuário - MODIFICADO para retornar o usuário
+const register = async (userData: RegisterData): Promise<User> => {
   const response = await axios.post(`${API_URL}/auth/register`, userData)
-  return response.data
+
+  // IMPORTANTE: Verifica se a resposta contém dados do usuário e os retorna
+  return response.data.user
 }
 
 // Verificar Email
@@ -37,6 +36,16 @@ const verifyEmail = async (
   token: string
 ): Promise<{ message: string; user?: User }> => {
   const response = await axios.get(`${API_URL}/auth/verify-email/${token}`)
+  return response.data
+}
+
+// Reenviar Email de Verificação
+const resendVerificationEmail = async (
+  email: string
+): Promise<{ message: string }> => {
+  const response = await axios.post(`${API_URL}/auth/resend-verification`, {
+    email
+  })
   return response.data
 }
 
@@ -55,14 +64,11 @@ const googleLogin = async (idToken: string): Promise<User> => {
 // Iniciar login com Google (Firebase v9)
 const initiateGoogleLogin = async (): Promise<string> => {
   const provider = new GoogleAuthProvider()
-
   const result = await signInWithPopup(auth, provider)
   const user = result.user
-
   if (!user) {
     throw new Error('Não foi possível autenticar com o Google')
   }
-
   const idToken = await user.getIdToken()
   return idToken
 }
@@ -98,7 +104,6 @@ const logout = async (): Promise<{ message: string }> => {
   if (auth.currentUser) {
     await auth.signOut()
   }
-
   const response = await axios.get(`${API_URL}/auth/logout`)
   return response.data
 }
@@ -106,6 +111,7 @@ const logout = async (): Promise<{ message: string }> => {
 const authService = {
   register,
   verifyEmail,
+  resendVerificationEmail,
   login,
   googleLogin,
   initiateGoogleLogin,

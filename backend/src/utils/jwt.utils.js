@@ -13,8 +13,10 @@ const generateToken = (id) => {
  * Envia resposta com token JWT em cookie
  */
 const sendTokenResponse = (user, statusCode, res) => {
-  const token = generateToken(user._id);
+  // Gerar o token JWT
+  const token = generateToken(user.id || user._id); // Aceita ambos os formatos de ID
 
+  // Configurar o cookie
   const cookieOptions = {
     expires: new Date(
       Date.now() + parseInt(process.env.JWT_EXPIRES_IN.replace('d', '')) * 24 * 60 * 60 * 1000
@@ -24,13 +26,14 @@ const sendTokenResponse = (user, statusCode, res) => {
     sameSite: 'strict'
   };
 
-  res
+  // Enviar a resposta com o cookie configurado
+  return res
     .status(statusCode)
     .cookie('token', token, cookieOptions)
     .json({
       success: true,
       user: {
-        id: user._id,
+        id: user.id || user._id,
         name: user.name,
         email: user.email,
         isEmailVerified: user.isEmailVerified

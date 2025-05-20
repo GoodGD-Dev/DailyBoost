@@ -12,7 +12,9 @@ import { motion } from 'framer-motion'
 const Register: React.FC = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const { loading, error } = useAppSelector((state) => state.auth)
+  const { loading, error, isAuthenticated, user } = useAppSelector(
+    (state) => state.auth
+  )
 
   useEffect(() => {
     if (error) {
@@ -20,6 +22,19 @@ const Register: React.FC = () => {
       dispatch(clearError())
     }
   }, [error, dispatch])
+
+  // Redirecionar após registro bem-sucedido
+  useEffect(() => {
+    if (isAuthenticated) {
+      // Se o usuário está autenticado mas o email não está verificado
+      if (user && !user.isEmailVerified) {
+        navigate('/verify-required')
+      } else {
+        // Se o email está verificado, redireciona para o dashboard
+        navigate('/dashboard')
+      }
+    }
+  }, [isAuthenticated, user, navigate])
 
   // Validação com Yup
   const validationSchema = Yup.object({
@@ -48,10 +63,8 @@ const Register: React.FC = () => {
       try {
         const { confirmPassword, ...userData } = values
         await dispatch(register(userData)).unwrap()
-        toast.success(
-          'Registro realizado com sucesso. Verifique seu email para confirmação.'
-        )
-        navigate('/login')
+        // Não precisamos mais do toast nem do navigate aqui, pois o useEffect
+        // cuidará do redirecionamento baseado no estado isAuthenticated
       } catch (error) {}
     }
   })

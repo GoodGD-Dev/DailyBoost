@@ -5,6 +5,26 @@ const { sendTokenResponse } = require('../../utils/jwt.utils');
 const firebase = require('../../config/firebase');
 
 /**
+ * Função auxiliar para enviar email de verificação
+ */
+const sendVerificationEmail = async (user, token) => {
+  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+
+  await sendEmail({
+    to: user.email,
+    subject: 'Confirme seu email',
+    html: `
+      <h1>Olá ${user.name},</h1>
+      <p>Bem-vindo à nossa aplicação!</p>
+      <p>Por favor, clique no link abaixo para verificar seu email:</p>
+      <a href="${verificationUrl}" target="_blank">Verificar Email</a>
+      <p>Este link expira em 24 horas.</p>
+      <p>Atenciosamente,<br>Equipe Login App</p>
+    `
+  });
+};
+
+/**
  * Serviço para registro de usuário
  */
 exports.registerUser = async (userData) => {
@@ -32,24 +52,57 @@ exports.registerUser = async (userData) => {
   });
 
   // Enviar email de verificação
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${emailVerificationToken}`;
+  await sendVerificationEmail(user, emailVerificationToken);
 
-  await sendEmail({
-    to: user.email,
-    subject: 'Confirme seu email',
-    html: `
-      <h1>Olá ${user.name},</h1>
-      <p>Bem-vindo à nossa aplicação!</p>
-      <p>Por favor, clique no link abaixo para verificar seu email:</p>
-      <a href="${verificationUrl}" target="_blank">Verificar Email</a>
-      <p>Este link expira em 24 horas.</p>
-      <p>Atenciosamente,<br>Equipe Login App</p>
-    `
-  });
+  // IMPORTANTE: Retorna o usuário completo
+  return {
+    success: true,
+    message: 'Usuário registrado com sucesso. Por favor, verifique seu email para confirmar sua conta.',
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      isEmailVerified: user.isEmailVerified
+    }
+  };
+};
+
+/**
+ * Serviço para reenviar email de verificação
+ */
+exports.resendVerificationEmail = async (email) => {
+  // Buscar usuário pelo email
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    const error = new Error('Usuário não encontrado');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Verificar se o email já foi verificado
+  if (user.isEmailVerified) {
+    return {
+      success: true,
+      message: 'Este email já foi verificado. Você pode fazer login normalmente.'
+    };
+  }
+
+  // Gerar novo token de verificação
+  const emailVerificationToken = crypto.randomBytes(20).toString('hex');
+  const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+
+  // Atualizar usuário com novo token
+  user.emailVerificationToken = emailVerificationToken;
+  user.emailVerificationExpires = emailVerificationExpires;
+  await user.save();
+
+  // Enviar novo email de verificação
+  await sendVerificationEmail(user, emailVerificationToken);
 
   return {
     success: true,
-    message: 'Usuário registrado com sucesso. Por favor, verifique seu email para confirmar sua conta.'
+    message: 'Um novo email de verificação foi enviado. Por favor, verifique sua caixa de entrada.'
   };
 };
 
@@ -122,13 +175,7 @@ exports.loginUser = async (credentials) => {
     throw error;
   }
 
-  // Verificar se o email foi confirmado
-  if (!user.isEmailVerified) {
-    const error = new Error('Por favor, verifique seu email antes de fazer login');
-    error.statusCode = 401;
-    throw error;
-  }
-
+  // Retornar o usuário (mesmo que o email não esteja verificado)
   return user;
 };
 

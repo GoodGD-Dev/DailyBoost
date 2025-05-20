@@ -89,6 +89,7 @@ export const register = createAsyncThunk(
   'auth/register',
   async (userData: RegisterCredentials, { rejectWithValue }) => {
     try {
+      // Retorna o usuário
       return await authService.register(userData)
     } catch (error: any) {
       return rejectWithValue(
@@ -108,6 +109,20 @@ export const verifyEmail = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || 'Erro ao verificar email'
+      )
+    }
+  }
+)
+
+// Thunk: Reenviar email de verificação
+export const resendVerificationEmail = createAsyncThunk(
+  'auth/resendVerificationEmail',
+  async (email: string, { rejectWithValue }) => {
+    try {
+      return await authService.resendVerificationEmail(email)
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || 'Erro ao reenviar email de verificação'
       )
     }
   }
@@ -219,10 +234,17 @@ const authSlice = createSlice({
       .addCase(register.pending, (state) => {
         state.loading = true
       })
-      .addCase(register.fulfilled, (state) => {
+      .addCase(register.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false
+        state.isAuthenticated = true
+        state.user = action.payload // Atualiza o usuário diretamente
         state.error = null
-        // Não autenticamos automaticamente após o registro pois precisa verificar o email
+
+        // Se o resultado contiver um objeto 'user', configuramos o estado de autenticação
+        if ('id' in action.payload) {
+          state.isAuthenticated = true
+          state.user = action.payload as User
+        }
       })
       .addCase(register.rejected, (state, action) => {
         state.loading = false
@@ -243,8 +265,20 @@ const authSlice = createSlice({
           state.user = action.payload.user
         }
       })
-
       .addCase(verifyEmail.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+
+      // Casos para resendVerificationEmail
+      .addCase(resendVerificationEmail.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(resendVerificationEmail.fulfilled, (state) => {
+        state.loading = false
+        state.error = null
+      })
+      .addCase(resendVerificationEmail.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
