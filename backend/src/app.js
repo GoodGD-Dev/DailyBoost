@@ -1,35 +1,36 @@
-// src/app.js
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { errorHandler } = require('./middlewares');
 
-// Importar rotas
+// Rotas
 const authRoutes = require('./features/auth/auth.routes');
-// No futuro, adicione outras rotas aqui à medida que criar novas features
-// const profileRoutes = require('./features/profile/profile.routes');
-// const postRoutes = require('./features/post/post.routes');
 
 // Inicializar o app Express
 const app = express();
 
 // Configurar middlewares globais
+// Estes middlewares são aplicados a todas as rotas
+
+// Middleware para analisar o corpo das requisições em formato JSON
 app.use(express.json());
+
+// Middleware para analisar cookies nas requisições
 app.use(cookieParser());
+
+// Configura o CORS (Cross-Origin Resource Sharing) para permitir requisições do frontend
 app.use(cors({
-  origin: process.env.FRONTEND_URL,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
+  origin: process.env.FRONTEND_URL,    // Origem permitida (URL do frontend)
+  credentials: true,                   // Permite o envio de cookies em requisições cross-origin
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Métodos HTTP permitidos
+  allowedHeaders: ['Content-Type', 'Authorization'] // Cabeçalhos permitidos
 }));
 
 // Configurar rotas da API
+// Define o prefixo '/api/auth' para todas as rotas de autenticação
 app.use('/api/auth', authRoutes);
-// No futuro, adicione outras rotas aqui à medida que criar novas features
-// app.use('/api/profile', profileRoutes);
-// app.use('/api/posts', postRoutes);
 
-// Rota para verificar se a API está rodando
+// Rota para verificar se a API está rodando (health check)
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     success: true,
@@ -39,7 +40,7 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Middleware para lidar com rotas não encontradas
+// Middleware para lidar com rotas não encontradas (404)
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,

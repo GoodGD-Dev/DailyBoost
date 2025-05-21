@@ -237,7 +237,7 @@ const authSlice = createSlice({
       .addCase(register.fulfilled, (state, action: PayloadAction<User>) => {
         state.loading = false
         state.isAuthenticated = true
-        state.user = action.payload // Atualiza o usuário diretamente
+        state.user = action.payload
         state.error = null
 
         // Se o resultado contiver um objeto 'user', configuramos o estado de autenticação
