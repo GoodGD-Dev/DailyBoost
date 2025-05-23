@@ -1,6 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import authService from '@features/Auth/services/authService'
 
+// ========== DEFINIÇÃO DE TIPOS/INTERFACES ==========
+
 // Interface para o estado de autenticação
 interface AuthState {
   user: User | null
@@ -17,22 +19,28 @@ interface User {
   isEmailVerified: boolean
 }
 
-// Interfaces para as ações
+// ========== INTERFACES PARA DADOS DE ENTRADA ==========
+
+// Dados necessários para fazer login
 interface LoginCredentials {
   email: string
   password: string
 }
 
+// Dados necessários para se registrar
 interface RegisterCredentials {
   name: string
   email: string
   password: string
 }
 
+// Dados para redefinir senha
 interface ResetPasswordData {
   token: string
   password: string
 }
+
+// ========== ESTADO INICIAL ==========
 
 // Estado inicial
 const initialState: AuthState = {
@@ -42,13 +50,18 @@ const initialState: AuthState = {
   error: null
 }
 
-// Thunk: Carrega o usuário atual ao iniciar a aplicação (verifica o token JWT)
+// ========== AÇÕES ASSÍNCRONAS (THUNKS) ==========
+// Cada thunk representa uma operação que pode demorar (chamada para API)
+
+// Verifica se há um usuário logado quando a aplicação inicia
+// (verifica se existe um token JWT válido salvo no navegador)
 export const loadUser = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
     try {
       return await authService.getCurrentUser()
     } catch (error: any) {
+      // Se der erro, retorna uma mensagem amigável
       return rejectWithValue(
         error.response?.data?.message || 'Erro ao carregar usuário'
       )
@@ -56,7 +69,7 @@ export const loadUser = createAsyncThunk(
   }
 )
 
-// Thunk: Login com email e senha
+// Faz login com email e senha
 export const login = createAsyncThunk(
   'auth/login',
   async (credentials: LoginCredentials, { rejectWithValue }) => {
@@ -70,7 +83,7 @@ export const login = createAsyncThunk(
   }
 )
 
-// Thunk: Login com Google
+// Faz login usando conta do Google
 export const googleLogin = createAsyncThunk(
   'auth/googleLogin',
   async (idToken: string, { rejectWithValue }) => {
@@ -84,7 +97,7 @@ export const googleLogin = createAsyncThunk(
   }
 )
 
-// Thunk: Registro de usuário
+// Registra um novo usuário
 export const register = createAsyncThunk(
   'auth/register',
   async (userData: RegisterCredentials, { rejectWithValue }) => {
@@ -99,13 +112,13 @@ export const register = createAsyncThunk(
   }
 )
 
-// Thunk: Verificação de email
+// Verifica o email usando o token enviado por email
 export const verifyEmail = createAsyncThunk(
   'auth/verifyEmail',
   async (token: string, { rejectWithValue }) => {
     try {
       const response = await authService.verifyEmail(token)
-      return response // Agora contém dados do usuário além da mensagem
+      return response // Retorna dados atualizados do usuário
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || 'Erro ao verificar email'
@@ -114,7 +127,7 @@ export const verifyEmail = createAsyncThunk(
   }
 )
 
-// Thunk: Reenviar email de verificação
+// Reenvia o email de verificação
 export const resendVerificationEmail = createAsyncThunk(
   'auth/resendVerificationEmail',
   async (email: string, { rejectWithValue }) => {
@@ -128,7 +141,7 @@ export const resendVerificationEmail = createAsyncThunk(
   }
 )
 
-// Thunk: Esqueci a senha
+// Solicita recuperação de senha (envia email com link)
 export const forgotPassword = createAsyncThunk(
   'auth/forgotPassword',
   async (email: string, { rejectWithValue }) => {
@@ -142,7 +155,7 @@ export const forgotPassword = createAsyncThunk(
   }
 )
 
-// Thunk: Redefinir senha
+// Redefine a senha usando o token do email
 export const resetPassword = createAsyncThunk(
   'auth/resetPassword',
   async (data: ResetPasswordData, { rejectWithValue }) => {
@@ -156,7 +169,7 @@ export const resetPassword = createAsyncThunk(
   }
 )
 
-// Thunk: Logout
+// Faz logout (remove token e limpa dados)
 export const logout = createAsyncThunk(
   'auth/logout',
   async (_, { rejectWithValue }) => {
@@ -170,37 +183,44 @@ export const logout = createAsyncThunk(
   }
 )
 
-// Criação do slice com reducers sincronos e assíncronos
+// ========== SLICE - CONFIGURAÇÃO PRINCIPAL ==========
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
+
+  // ========== REDUCERS SÍNCRONOS ==========
+  // Ações que acontecem imediatamente, sem esperar API
   reducers: {
-    // Reducer síncrono para limpar erros
+    // Limpa mensagens de erro
     clearError: (state) => {
       state.error = null
     }
   },
-  // Reducers para as ações assíncronas (thunks)
+
+  // ========== REDUCERS ASSÍNCRONOS ==========
+  // Define o que acontece quando cada thunk (ação assíncrona) executa
+  // Cada thunk tem 3 estados: pending (carregando), fulfilled (sucesso), rejected (erro)
   extraReducers: (builder) => {
     builder
-      // Casos para loadUser
+      // ========== CASOS PARA loadUser ==========
       .addCase(loadUser.pending, (state) => {
-        state.loading = true
+        state.loading = true // Mostra indicador de carregamento
       })
       .addCase(loadUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.loading = false
-        state.isAuthenticated = true
-        state.user = action.payload
-        state.error = null
+        state.loading = false // Para loading
+        state.isAuthenticated = true // Marca como autenticado
+        state.user = action.payload // Salva dados do usuário
+        state.error = null // Limpa erros
       })
       .addCase(loadUser.rejected, (state, action) => {
-        state.loading = false
-        state.isAuthenticated = false
-        state.user = null
-        state.error = action.payload as string
+        state.loading = false // Para loading
+        state.isAuthenticated = false // Não autenticado
+        state.user = null // Remove dados do usuário
+        state.error = action.payload as string // Salva mensagem de erro
       })
 
-      // Casos para login
+      // ========== CASOS PARA login ==========
       .addCase(login.pending, (state) => {
         state.loading = true
       })
@@ -215,7 +235,7 @@ const authSlice = createSlice({
         state.error = action.payload as string
       })
 
-      // Casos para googleLogin
+      // ========== CASOS PARA googleLogin ==========
       .addCase(googleLogin.pending, (state) => {
         state.loading = true
       })
@@ -230,7 +250,7 @@ const authSlice = createSlice({
         state.error = action.payload as string
       })
 
-      // Casos para register
+      // ========== CASOS PARA register ==========
       .addCase(register.pending, (state) => {
         state.loading = true
       })
@@ -240,7 +260,7 @@ const authSlice = createSlice({
         state.user = action.payload
         state.error = null
 
-        // Se o resultado contiver um objeto 'user', configuramos o estado de autenticação
+        // Verificação extra para garantir que recebemos dados válidos do usuário
         if ('id' in action.payload) {
           state.isAuthenticated = true
           state.user = action.payload as User
@@ -251,7 +271,7 @@ const authSlice = createSlice({
         state.error = action.payload as string
       })
 
-      // Casos para verifyEmail
+      // ========== CASOS PARA verifyEmail ==========
       .addCase(verifyEmail.pending, (state) => {
         state.loading = true
       })
@@ -259,7 +279,7 @@ const authSlice = createSlice({
         state.loading = false
         state.error = null
 
-        // Se a resposta incluir dados do usuário, atualize o estado de autenticação
+        // Se a verificação trouxer dados atualizados do usuário, salva eles
         if (action.payload?.user) {
           state.isAuthenticated = true
           state.user = action.payload.user
@@ -270,67 +290,67 @@ const authSlice = createSlice({
         state.error = action.payload as string
       })
 
-      // Casos para resendVerificationEmail
+      // ========== CASOS PARA resendVerificationEmail ==========
       .addCase(resendVerificationEmail.pending, (state) => {
         state.loading = true
       })
       .addCase(resendVerificationEmail.fulfilled, (state) => {
         state.loading = false
         state.error = null
+        // Não muda dados do usuário - apenas confirma que email foi enviado
       })
       .addCase(resendVerificationEmail.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
 
-      // Casos para forgotPassword
+      // ========== CASOS PARA forgotPassword ==========
       .addCase(forgotPassword.pending, (state) => {
         state.loading = true
       })
       .addCase(forgotPassword.fulfilled, (state) => {
         state.loading = false
         state.error = null
+        // Apenas confirma que email de recuperação foi enviado
       })
       .addCase(forgotPassword.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
 
-      // Casos para resetPassword
+      // ========== CASOS PARA resetPassword ==========
       .addCase(resetPassword.pending, (state) => {
         state.loading = true
       })
       .addCase(resetPassword.fulfilled, (state) => {
         state.loading = false
         state.error = null
+        // Senha foi redefinida com sucesso
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
 
-      // Casos para logout
+      // ========== CASOS PARA logout ==========
       .addCase(logout.pending, (state) => {
         state.loading = true
       })
       .addCase(logout.fulfilled, (state) => {
         state.loading = false
-        state.isAuthenticated = false
-        state.user = null
+        state.isAuthenticated = false // Marca como não autenticado
+        state.user = null // Remove dados do usuário
         state.error = null
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
-        // Mesmo com erro, tentamos limpar o estado de autenticação
+        // Mesmo com erro, tenta limpar o estado (segurança)
         state.isAuthenticated = false
         state.user = null
       })
   }
 })
 
-// Exportamos a ação clearError
 export const { clearError } = authSlice.actions
-
-// Exportamos o reducer
 export default authSlice.reducer

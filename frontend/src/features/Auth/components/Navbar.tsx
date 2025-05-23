@@ -11,19 +11,29 @@ const Navbar: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
+  // ========== FUNÇÃO DE LOGOUT ==========
   const handleLogout = async () => {
     try {
+      // Dispara ação de logout no Redux
+      // .unwrap() converte Promise Redux em Promise normal
       await dispatch(logout()).unwrap()
+
+      // Mostra notificação de sucesso
       toast.success('Logout realizado com sucesso')
+
+      // Redireciona para página de login
       navigate('/login')
     } catch (error) {
+      // Se der erro, mostra notificação
       toast.error('Erro ao fazer logout')
     }
   }
 
+  // ========== RENDER ==========
   return (
     <motion.nav
       className="bg-white border-b border-gray-100 py-4 sticky top-0 z-50 shadow-sm"
+      // ========== ANIMAÇÃO DE ENTRADA ==========
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
@@ -38,18 +48,24 @@ const Navbar: React.FC = () => {
             loginApp
           </Link>
 
-          {/* Desktop Menu */}
+          {/* ========== MENU DESKTOP ========== */}
           <div className="hidden md:flex items-center space-x-6">
+            {/* RENDERIZAÇÃO CONDICIONAL - Baseada no estado de autenticação */}
             {isAuthenticated ? (
+              // ========== USUÁRIO LOGADO ==========
               <>
                 <div className="flex items-center">
                   <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium mr-2">
                     {user?.name?.charAt(0).toUpperCase()}
                   </div>
+
+                  {/* Nome do usuário */}
                   <span className="text-gray-700 font-medium">
                     {user?.name}
                   </span>
                 </div>
+
+                {/* Botão de logout */}
                 <button
                   onClick={handleLogout}
                   className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-all duration-200"
@@ -58,6 +74,7 @@ const Navbar: React.FC = () => {
                 </button>
               </>
             ) : (
+              // ========== USUÁRIO NÃO LOGADO ==========
               <>
                 <Link
                   to="/login"
@@ -65,6 +82,8 @@ const Navbar: React.FC = () => {
                 >
                   Login
                 </Link>
+
+                {/* Botão de registro */}
                 <Link
                   to="/register"
                   className="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition-colors duration-200"
@@ -75,7 +94,7 @@ const Navbar: React.FC = () => {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* ========== BOTÃO HAMBÚRGUER (MOBILE) ========== */}
           <button
             className="md:hidden focus:outline-none"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -86,7 +105,9 @@ const Navbar: React.FC = () => {
               viewBox="0 0 24 24"
               stroke="currentColor"
             >
+              {/* RENDERIZAÇÃO CONDICIONAL - Ícone hambúrguer ou X */}
               {isMenuOpen ? (
+                // Ícone X (fechar)
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -94,6 +115,7 @@ const Navbar: React.FC = () => {
                   d="M6 18L18 6M6 6l12 12"
                 />
               ) : (
+                // Ícone hambúrguer (3 linhas)
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -105,15 +127,19 @@ const Navbar: React.FC = () => {
           </button>
         </div>
 
-        {/* Mobile menu */}
+        {/* ========== MENU MOBILE ========== */}
+        {/* RENDERIZAÇÃO CONDICIONAL - Só aparece se isMenuOpen for true */}
         {isMenuOpen && (
           <motion.div
             className="md:hidden mt-4 py-4 border-t border-gray-100"
+            // ========== ANIMAÇÃO DO MENU MOBILE ==========
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             transition={{ duration: 0.2 }}
           >
+            {/* RENDERIZAÇÃO CONDICIONAL - Mesmo esquema do menu desktop */}
             {isAuthenticated ? (
+              // ========== USUÁRIO LOGADO (MOBILE) ==========
               <div className="flex flex-col space-y-4">
                 <div className="flex items-center py-2">
                   <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-medium mr-2">
@@ -123,6 +149,8 @@ const Navbar: React.FC = () => {
                     {user?.name}
                   </span>
                 </div>
+
+                {/* Botão de logout */}
                 <button
                   onClick={handleLogout}
                   className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-all duration-200 w-full text-left"
@@ -131,6 +159,7 @@ const Navbar: React.FC = () => {
                 </button>
               </div>
             ) : (
+              // ========== USUÁRIO NÃO LOGADO (MOBILE) ==========
               <div className="flex flex-col space-y-3">
                 <Link
                   to="/login"

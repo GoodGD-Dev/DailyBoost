@@ -9,12 +9,14 @@ import FormButton from '@features/Auth/components/FormButton'
 import { motion } from 'framer-motion'
 
 const ResetPassword: React.FC = () => {
+  // ========== HOOKS ==========
   const { token } = useParams<{ token: string }>()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { loading, error } = useAppSelector((state) => state.auth)
   const [isSuccess, setIsSuccess] = useState(false)
 
+  // ========== EFFECT PARA TRATAMENTO DE ERROS ==========
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -22,7 +24,8 @@ const ResetPassword: React.FC = () => {
     }
   }, [error, dispatch])
 
-  // Validação com Yup
+  // ========== VALIDAÇÃO COM YUP ==========
+  // Schema similar ao registro, mas sem nome e email
   const validationSchema = Yup.object({
     password: Yup.string()
       .required('Senha é obrigatória')
@@ -32,32 +35,42 @@ const ResetPassword: React.FC = () => {
       .required('Confirmação de senha é obrigatória')
   })
 
-  // Configuração do Formik
+  // ========== CONFIGURAÇÃO DO FORMIK ==========
   const formik = useFormik({
     initialValues: {
       password: '',
       confirmPassword: ''
     },
     validationSchema,
+
     onSubmit: async (values) => {
+      // ========== VALIDAÇÃO DO TOKEN ==========
+      // Verifica se token existe na UR
       if (!token) {
         toast.error('Token inválido')
         return
       }
 
       try {
+        // ========== DISPATCH DA AÇÃO DE RESET ==========
         await dispatch(
           resetPassword({ token, password: values.password })
         ).unwrap()
+
+        // ========== SUCESSO - ATUALIZA UI ==========
         setIsSuccess(true)
+
+        // ========== REDIRECIONAMENTO AUTOMÁTICO ==========
         setTimeout(() => {
           navigate('/login')
         }, 3000)
-      } catch (error) {}
+      } catch (error) {
+        // Erros são tratados pelo useEffect que monitora estado 'error'
+      }
     }
   })
 
-  // Animações
+  // ========== CONFIGURAÇÕES DE ANIMAÇÃO ==========
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -79,6 +92,7 @@ const ResetPassword: React.FC = () => {
     }
   }
 
+  // ========== RENDER ==========
   return (
     <motion.div
       className="max-w-md mx-auto"
@@ -94,12 +108,16 @@ const ResetPassword: React.FC = () => {
           Redefinir Senha
         </motion.h2>
 
+        {/* RENDERIZAÇÃO CONDICIONAL - Baseada no estado de sucesso */}
         {isSuccess ? (
+          // ========== ESTADO: SENHA REDEFINIDA COM SUCESSO ==========
           <motion.div variants={itemVariants}>
+            {/* Mensagem de sucesso */}
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
               Senha redefinida com sucesso! Você será redirecionado para a
               página de login em instantes.
             </div>
+
             <div className="text-center">
               <Link
                 to="/login"
@@ -110,7 +128,9 @@ const ResetPassword: React.FC = () => {
             </div>
           </motion.div>
         ) : (
+          // ========== ESTADO: FORMULÁRIO DE REDEFINIÇÃO ==========
           <form onSubmit={formik.handleSubmit}>
+            {/* ========== CAMPO NOVA SENHA ========== */}
             <motion.div className="mb-4" variants={itemVariants}>
               <label htmlFor="password" className="block text-gray-700 mb-2">
                 Nova Senha
@@ -126,6 +146,7 @@ const ResetPassword: React.FC = () => {
               ) : null}
             </motion.div>
 
+            {/* ========== CAMPO CONFIRMAR NOVA SENHA ========== */}
             <motion.div className="mb-6" variants={itemVariants}>
               <label
                 htmlFor="confirmPassword"
@@ -147,6 +168,7 @@ const ResetPassword: React.FC = () => {
               ) : null}
             </motion.div>
 
+            {/* ========== BOTÃO DE SUBMISSÃO ========== */}
             <motion.div className="mb-6" variants={itemVariants}>
               <FormButton
                 text="Redefinir Senha"
@@ -155,6 +177,7 @@ const ResetPassword: React.FC = () => {
               />
             </motion.div>
 
+            {/* ========== LINK DE ESCAPE ========== */}
             <motion.div className="text-center text-sm" variants={itemVariants}>
               <Link
                 to="/login"

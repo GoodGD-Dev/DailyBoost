@@ -6,17 +6,21 @@ import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 
 const VerifyEmail: React.FC = () => {
+  // ========== HOOKS ==========
   const { token } = useParams<{ token: string }>()
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { loading, error, isAuthenticated } = useAppSelector(
     (state) => state.auth
   )
+
+  // ========== ESTADOS LOCAIS COMPLEXOS ==========
   const [verified, setVerified] = useState(false)
   const [verificationAttempted, setVerificationAttempted] = useState(false)
   const [verificationInProgress, setVerificationInProgress] = useState(false)
   const [redirecting, setRedirecting] = useState(false)
 
+  // ========== EFFECT PARA TRATAMENTO DE ERROS ==========
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -24,45 +28,56 @@ const VerifyEmail: React.FC = () => {
     }
   }, [error, dispatch])
 
-  // Redirecionar se o usuário estiver autenticado após verificação
+  // ========== EFFECT PARA REDIRECIONAMENTO APÓS VERIFICAÇÃO ==========
+  // Monitora se verificação foi bem-sucedida e usuário está autenticado
   useEffect(() => {
     if (verified && isAuthenticated && !redirecting) {
       setRedirecting(true)
       toast.success('Login realizado automaticamente!')
 
-      // Redirecionar para o dashboard após um breve atraso
+      // ========== REDIRECIONAMENTO COM DELAY ==========
       setTimeout(() => {
         navigate('/dashboard')
       }, 1500)
     }
   }, [verified, isAuthenticated, navigate, redirecting])
 
-  // Verificar o email automaticamente quando o componente for montado
+  // ========== EFFECT PRINCIPAL - VERIFICAÇÃO AUTOMÁTICA ==========
+  // Executa verificação assim que componente é montado
   useEffect(() => {
     // Verificar se temos um token válido e se já não estamos processando ou não tentamos ainda
     if (token && !verificationAttempted && !verificationInProgress) {
+      // Função assíncrona interna para executar verificação
       const verify = async () => {
         try {
+          // ========== INÍCIO DA VERIFICAÇÃO ==========
           setVerificationInProgress(true)
           console.log('Iniciando verificação com token:', token)
 
+          // ========== DISPATCH DA VERIFICAÇÃO ==========
           // Verificar o email (e fazer login automaticamente)
           await dispatch(verifyEmail(token)).unwrap()
           console.log('Verificação bem-sucedida')
+
+          // ========== MARCAÇÃO DE SUCESSO ==========
           setVerified(true)
           toast.success('Email verificado com sucesso!')
 
+          // ========== LIMPEZA DA URL ==========
           // Limpar o token da URL após a verificação
           if (window.history.replaceState) {
             const newUrl = window.location.pathname.replace(
               `/verify-email/${token}`,
               '/verify-email'
             )
+            // Atualiza URL no browser sem recarregar página
             window.history.replaceState({}, document.title, newUrl)
           }
         } catch (error: any) {
+          // ========== TRATAMENTO DE ERRO ==========
           console.error('Erro na verificação:', error)
         } finally {
+          // ========== LIMPEZA SEMPRE EXECUTADA ==========
           setVerificationAttempted(true)
           setVerificationInProgress(false)
         }
@@ -72,7 +87,7 @@ const VerifyEmail: React.FC = () => {
     }
   }, [token, dispatch, verificationAttempted, verificationInProgress])
 
-  // Animações
+  // ========== CONFIGURAÇÕES DE ANIMAÇÃO ==========
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -94,12 +109,14 @@ const VerifyEmail: React.FC = () => {
     }
   }
 
-  // Mostrar carregamento enquanto a verificação está em progresso
+  // ========== RENDER CONDICIONAL - LOADING STATES ==========
+  // Estado 1: Verificação em progresso
   if (loading || verificationInProgress) {
     return (
       <div className="max-w-md mx-auto">
         <div className="card">
           <div className="flex flex-col justify-center items-center h-40">
+            {/* Spinner de carregamento */}
             <div className="w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-3"></div>
             <p className="text-gray-600">Verificando email...</p>
           </div>
@@ -108,7 +125,7 @@ const VerifyEmail: React.FC = () => {
     )
   }
 
-  // Mostrar página de redirecionamento
+  // Estado 2: Redirecionando
   if (redirecting) {
     return (
       <div className="max-w-md mx-auto">
@@ -122,6 +139,7 @@ const VerifyEmail: React.FC = () => {
     )
   }
 
+  // ========== RENDER PRINCIPAL - RESULTADO DA VERIFICAÇÃO ==========
   return (
     <motion.div
       className="max-w-md mx-auto"
@@ -137,9 +155,12 @@ const VerifyEmail: React.FC = () => {
           Verificação de Email
         </motion.h2>
 
+        {/* RENDERIZAÇÃO CONDICIONAL - Sucesso vs Erro */}
         {verified ? (
+          // ========== ESTADO: VERIFICAÇÃO BEM-SUCEDIDA ==========
           <motion.div variants={itemVariants}>
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+              {/* Ícone de check (✓) */}
               <svg
                 className="w-6 h-6 inline-block mr-2"
                 fill="none"
@@ -157,6 +178,7 @@ const VerifyEmail: React.FC = () => {
               Seu email foi verificado com sucesso! Redirecionando para o
               dashboard...
             </div>
+            {/* Botão manual para ir ao dashboard */}
             <div className="text-center">
               <button
                 onClick={() => navigate('/dashboard')}
@@ -167,6 +189,7 @@ const VerifyEmail: React.FC = () => {
             </div>
           </motion.div>
         ) : (
+          // ========== ESTADO: VERIFICAÇÃO FALHOU ==========
           <motion.div variants={itemVariants}>
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
               <svg
@@ -183,9 +206,13 @@ const VerifyEmail: React.FC = () => {
                   d="M6 18L18 6M6 6l12 12"
                 ></path>
               </svg>
+
+              {/* Mensagem de erro dinâmica */}
               {error ||
                 'Não foi possível verificar seu email. O link pode ter expirado ou ser inválido.'}
             </div>
+
+            {/* Link para voltar ao login */}
             <div className="text-center">
               <Link
                 to="/login"

@@ -1,6 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 
+// ========== INTERFACE TYPESCRIPT ==========
 interface FormButtonProps {
   text: string
   loading?: boolean
@@ -8,6 +9,7 @@ interface FormButtonProps {
   type?: 'button' | 'submit' | 'reset'
 }
 
+// ========== COMPONENTE PRINCIPAL ==========
 const FormButton: React.FC<FormButtonProps> = ({
   text,
   loading = false,
@@ -19,9 +21,13 @@ const FormButton: React.FC<FormButtonProps> = ({
       type={type}
       disabled={disabled || loading}
       className={`w-full btn btn-primary flex justify-center items-center ${disabled ? 'opacity-70 cursor-not-allowed' : ''}`}
+      // ========== ANIMAÇÕES FRAMER MOTION ==========
       whileHover={{ scale: disabled ? 1 : 1.02 }}
       whileTap={{ scale: disabled ? 1 : 0.98 }}
     >
+      {/* ========== CONTEÚDO DO BOTÃO ========== */}
+
+      {/* RENDERIZAÇÃO CONDICIONAL - Mostra spinner apenas quando loading=true */}
       {loading ? (
         <svg
           className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -29,6 +35,7 @@ const FormButton: React.FC<FormButtonProps> = ({
           fill="none"
           viewBox="0 0 24 24"
         >
+          {/* Círculo base do spinner (mais transparente) */}
           <circle
             className="opacity-25"
             cx="12"
@@ -37,6 +44,7 @@ const FormButton: React.FC<FormButtonProps> = ({
             stroke="currentColor"
             strokeWidth="4"
           ></circle>
+          {/* Parte que cria o efeito de rotação (mais opaca) */}
           <path
             className="opacity-75"
             fill="currentColor"
@@ -44,6 +52,9 @@ const FormButton: React.FC<FormButtonProps> = ({
           ></path>
         </svg>
       ) : null}
+      {/* Se loading=false, não renderiza nada (null) */}
+
+      {/* Texto do botão - sempre aparece */}
       {text}
     </motion.button>
   )

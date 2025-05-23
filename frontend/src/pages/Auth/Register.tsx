@@ -10,12 +10,13 @@ import GoogleButton from '@features/Auth/components/GoogleButton'
 import { motion } from 'framer-motion'
 
 const Register: React.FC = () => {
+  // ========== HOOKS ==========
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
   const { loading, error, isAuthenticated, user } = useAppSelector(
     (state) => state.auth
   )
-
+  // ========== EFFECT PARA TRATAMENTO DE ERROS ==========
   useEffect(() => {
     if (error) {
       toast.error(error)
@@ -23,20 +24,23 @@ const Register: React.FC = () => {
     }
   }, [error, dispatch])
 
-  // Redirecionar após registro bem-sucedido
+  // ========== EFFECT PARA REDIRECIONAMENTO APÓS REGISTRO ==========  useEffect(() => {
+  // Monitora estado de autenticação e redireciona adequadamente
   useEffect(() => {
     if (isAuthenticated) {
-      // Se o usuário está autenticado mas o email não está verificado
+      // Email não verificado: vai para página de verificação obrigatória
       if (user && !user.isEmailVerified) {
+        // Email não verificado: vai para página de verificação obrigatória
         navigate('/verify-required')
       } else {
-        // Se o email está verificado, redireciona para o dashboard
+        // Email verificado: vai direto para dashboard
         navigate('/dashboard')
       }
     }
   }, [isAuthenticated, user, navigate])
 
-  // Validação com Yup
+  // ========== VALIDAÇÃO COM YUP ==========
+  // Schema de validação mais complexo que o login
   const validationSchema = Yup.object({
     name: Yup.string()
       .required('Nome é obrigatório')
@@ -50,7 +54,7 @@ const Register: React.FC = () => {
       .required('Confirmação de senha é obrigatória')
   })
 
-  // Configuração do Formik
+  // ========== CONFIGURAÇÃO DO FORMIK ==========
   const formik = useFormik({
     initialValues: {
       name: '',
@@ -58,18 +62,23 @@ const Register: React.FC = () => {
       password: '',
       confirmPassword: ''
     },
+
     validationSchema,
+
+    // Função de submissão
     onSubmit: async (values) => {
       try {
+        // ========== LIMPEZA DOS DADOS ==========
         const { confirmPassword, ...userData } = values
+
+        // ========== DISPATCH DO REGISTRO ==========
         await dispatch(register(userData)).unwrap()
-        // Não precisamos mais do toast nem do navigate aqui, pois o useEffect
-        // cuidará do redirecionamento baseado no estado isAuthenticated
       } catch (error) {}
     }
   })
 
-  // Animações
+  // ========== CONFIGURAÇÕES DE ANIMAÇÃO ==========
+  // Mesmo padrão usado nos outros componentes de auth
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -91,6 +100,7 @@ const Register: React.FC = () => {
     }
   }
 
+  // ========== RENDER ==========
   return (
     <motion.div
       className="max-w-md mx-auto"
@@ -107,6 +117,7 @@ const Register: React.FC = () => {
         </motion.h2>
 
         <form onSubmit={formik.handleSubmit}>
+          {/* ========== CAMPO NOME ========== */}
           <motion.div className="mb-4" variants={itemVariants}>
             <label htmlFor="name" className="block text-gray-700 mb-2">
               Nome
@@ -117,11 +128,14 @@ const Register: React.FC = () => {
               {...formik.getFieldProps('name')}
               className="input"
             />
+
+            {/* Exibição condicional de erro */}
             {formik.touched.name && formik.errors.name ? (
               <div className="error-text">{formik.errors.name}</div>
             ) : null}
           </motion.div>
 
+          {/* ========== CAMPO EMAIL ========== */}
           <motion.div className="mb-4" variants={itemVariants}>
             <label htmlFor="email" className="block text-gray-700 mb-2">
               Email
@@ -137,6 +151,7 @@ const Register: React.FC = () => {
             ) : null}
           </motion.div>
 
+          {/* ========== CAMPO SENHA ========== */}
           <motion.div className="mb-4" variants={itemVariants}>
             <label htmlFor="password" className="block text-gray-700 mb-2">
               Senha
@@ -152,6 +167,7 @@ const Register: React.FC = () => {
             ) : null}
           </motion.div>
 
+          {/* ========== CAMPO CONFIRMAÇÃO DE SENHA ========== */}
           <motion.div className="mb-6" variants={itemVariants}>
             <label
               htmlFor="confirmPassword"
@@ -170,6 +186,7 @@ const Register: React.FC = () => {
             ) : null}
           </motion.div>
 
+          {/* ========== BOTÃO DE REGISTRO ========== */}
           <motion.div className="mb-4" variants={itemVariants}>
             <FormButton
               text="Registrar"
@@ -178,6 +195,7 @@ const Register: React.FC = () => {
             />
           </motion.div>
 
+          {/* ========== DIVISOR "OU" ========== */}
           <motion.div
             className="relative mb-4 flex items-center justify-center"
             variants={itemVariants}
@@ -190,10 +208,12 @@ const Register: React.FC = () => {
             </div>
           </motion.div>
 
+          {/* ========== BOTÃO GOOGLE ========== */}
           <motion.div className="mb-6" variants={itemVariants}>
             <GoogleButton />
           </motion.div>
 
+          {/* ========== LINK PARA LOGIN ========== */}
           <motion.div className="text-center text-sm" variants={itemVariants}>
             Já tem uma conta?{' '}
             <Link
@@ -208,5 +228,4 @@ const Register: React.FC = () => {
     </motion.div>
   )
 }
-
 export default Register

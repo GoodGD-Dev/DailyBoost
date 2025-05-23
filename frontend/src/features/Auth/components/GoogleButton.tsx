@@ -7,18 +7,21 @@ import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { motion } from 'framer-motion'
 
 const GoogleButton: React.FC = () => {
+  // ========== HOOKS ==========
   const dispatch = useAppDispatch()
   const [loading, setLoading] = useState(false)
 
+  // ========== FUNÇÃO PRINCIPAL DE LOGIN ==========
   const handleGoogleLogin = async () => {
     try {
       console.log('Iniciando login com Google...')
       setLoading(true)
 
+      // ========== CONFIGURAÇÃO DO PROVEDOR GOOGLE ==========
       console.log('Criando provedor Google...')
       const provider = new GoogleAuthProvider()
 
-      // Adicionando escopo para melhorar as chances de sucesso
+      // Adiciona escopos específicos para garantir acesso aos dados necessários      provider.addScope('profile')
       provider.addScope('profile')
       provider.addScope('email')
 
@@ -26,64 +29,87 @@ const GoogleButton: React.FC = () => {
       console.log('Auth object:', auth)
 
       try {
+        // ========== AUTENTICAÇÃO VIA POPUP ==========
+        // signInWithPopup abre uma janela popup com a tela de login do Google
         const result = await signInWithPopup(auth, provider)
         console.log('Popup concluído com sucesso, resultado:', result)
 
+        // Extrai os dados do usuário do resultado
         const user = result.user
         console.log('Usuário autenticado:', user)
 
+        // Validação de segurança
         if (!user) {
           throw new Error('Não foi possível autenticar com o Google')
         }
 
+        // ========== OBTENÇÃO DO TOKEN JWT ==========
         console.log('Obtendo ID token...')
+        // getIdToken() pega o token JWT que será enviado para o backend
         const idToken = await user.getIdToken()
         console.log(
           'ID token obtido, primeiros caracteres:',
           idToken.substring(0, 10) + '...'
         )
 
+        // ========== ENVIO PARA O BACKEND ==========
         console.log('Enviando token para backend...')
+        // Dispara a ação Redux que envia o token para a API
+        // .unwrap() converte a Promise do Redux em Promise normal
         await dispatch(googleLogin(idToken)).unwrap()
+
+        // Mostra notificação de sucesso
         toast.success('Login com Google realizado com sucesso')
       } catch (popupError: any) {
+        // ========== TRATAMENTO DE ERROS DO POPUP ==========
         console.error('Erro no popup:', popupError)
         console.error('Código do erro:', popupError.code)
         console.error('Mensagem do erro:', popupError.message)
 
+        // Tratamento específico para erro de configuração
         if (popupError.code === 'auth/configuration-not-found') {
           toast.error(
             'Erro na configuração do Firebase. Verifique o console para mais detalhes.'
           )
         } else {
+          // Outros erros do popup (usuário cancelou, erro de rede, etc.)
           toast.error(
             popupError.message || 'Erro ao abrir popup de autenticação'
           )
         }
       }
     } catch (error: any) {
+      // ========== TRATAMENTO DE ERROS GERAIS ==========
       console.error('Erro geral:', error)
       toast.error(error.message || 'Erro ao fazer login com Google')
     } finally {
+      // ========== LIMPEZA ==========
+      // Sempre executa, independente de sucesso ou erro
       setLoading(false)
     }
   }
 
+  // ========== RENDER DO COMPONENTE ==========
   return (
     <motion.button
       onClick={handleGoogleLogin}
       disabled={loading}
       className="w-full flex justify-center items-center bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+      // ========== ANIMAÇÕES FRAMER MOTION ==========
       whileHover={{ scale: loading ? 1 : 1.02 }}
       whileTap={{ scale: loading ? 1 : 0.98 }}
     >
+      {/* ========== CONTEÚDO DO BOTÃO ========== */}
+      {/* RENDERIZAÇÃO CONDICIONAL - Spinner ou ícone do Google */}
       {loading ? (
+        // ========== SPINNER DE CARREGAMENTO ==========
         <svg
           className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
         >
+          {/* Círculo base do spinner */}
           <circle
             className="opacity-25"
             cx="12"
@@ -92,6 +118,7 @@ const GoogleButton: React.FC = () => {
             stroke="currentColor"
             strokeWidth="4"
           ></circle>
+          {/* Parte que cria o efeito de rotação */}
           <path
             className="opacity-75"
             fill="currentColor"
@@ -99,6 +126,7 @@ const GoogleButton: React.FC = () => {
           ></path>
         </svg>
       ) : (
+        // ========== ÍCONE DO GOOGLE ==========
         <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
           <path
             fill="#4285F4"
@@ -119,6 +147,7 @@ const GoogleButton: React.FC = () => {
           <path fill="none" d="M1 1h22v22H1z" />
         </svg>
       )}
+      {/* Texto do botão - sempre visível */}
       Continuar com Google
     </motion.button>
   )
