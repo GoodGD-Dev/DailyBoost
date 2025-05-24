@@ -2,9 +2,8 @@ import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import { useAppDispatch, useAppSelector } from '@core/store/hooks'
-import { verifyEmail, clearError } from '@core/store/slices/authSlice'
-import { formVariants } from '@features/Auth/constants/animations'
+import { useAppDispatch, useAppSelector, verifyEmail, clearError } from '@core'
+import { formVariants } from '@features'
 
 // Interface para definir o tipo de erro
 interface ApiError {

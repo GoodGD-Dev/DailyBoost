@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { useAppSelector } from '@core/store/hooks'
-import { formVariants } from '@features/Auth/constants/animations'
+import { useAppSelector } from '@core'
+import { formVariants } from '@features'
 
 const Dashboard: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth)

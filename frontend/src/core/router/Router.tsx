@@ -7,27 +7,28 @@ import {
 } from 'react-router-dom'
 
 // Pages
-import Login from '@pages/Auth/Login'
-import Register from '@pages/Auth/Register'
-import ForgotPassword from '@pages/Auth/ForgotPassword'
-import ResetPassword from '@pages/Auth/ResetPassword'
-import VerifyEmail from '@pages/Auth/VerifyEmail'
-import VerifyRequired from '@/pages/Auth/VerifyRequired'
-import Dashboard from '@pages/Dashboard'
-import NotFound from '@pages/NotFound'
+import {
+  Dashboard,
+  ForgotPassword,
+  Login,
+  NotFound,
+  Register,
+  ResetPassword,
+  VerifyEmail,
+  VerifyRequired
+} from '@pages'
 
 // Access Control
-import ProtectedRoute from './ProtectedRoute'
-import PublicRoute from './PublicRoute'
-import VerifyRequiredRoute from './VerifyRequiredRoute'
-import Layout from '@/shared/layout/Layout'
+import { ProtectedRoute, PublicRoute, VerifyRequiredRoute } from '@core'
+
+import { MainLayout } from '@shared'
 
 // Routes
 const routes: RouteObject[] = [
   {
     // Rota raiz que engloba toda a aplicação
     path: '/',
-    element: <Layout />, // Layout base que será mostrado em todas as páginas
+    element: <MainLayout />, // Layout base que será mostrado em todas as páginas
     children: [
       // Public Routes
       {

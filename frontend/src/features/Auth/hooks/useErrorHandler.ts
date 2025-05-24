@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { toast } from 'react-toastify'
 import { ActionCreatorWithoutPayload } from '@reduxjs/toolkit'
-import { useAppDispatch } from '@/core/store/hooks'
+import { useAppDispatch } from '@core'
 
 interface UseErrorHandlerFlexibleOptions {
   error: string | null

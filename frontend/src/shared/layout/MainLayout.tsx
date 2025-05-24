@@ -1,9 +1,8 @@
 import React from 'react'
 import { Outlet } from 'react-router-dom'
-import Header from './Header'
-import Footer from './Footer'
+import { Header, Footer } from '@shared'
 
-const Layout: React.FC = () => {
+const MainLayout: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col">
       {/* ========== HEADER ========== */}
@@ -20,4 +19,4 @@ const Layout: React.FC = () => {
   )
 }
 
-export default Layout
+export default MainLayout

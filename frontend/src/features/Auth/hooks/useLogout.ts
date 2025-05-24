@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useAppDispatch } from '@core/store/hooks'
-import { logout } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
+import { useAppDispatch, logout } from '@core'
 
 export const useLogout = () => {
   const [isLoading, setIsLoading] = useState(false)

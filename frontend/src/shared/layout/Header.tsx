@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { useAppSelector } from '@core/store/hooks'
-import { useLogout } from '@/features/Auth/hooks/useLogout'
+import { useAppSelector } from '@core'
+import { useLogout } from '@features'
 
 const Header: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)

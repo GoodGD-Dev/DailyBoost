@@ -1,8 +1,8 @@
 import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
-import { useAppSelector } from '@core/store/hooks'
+import { useAppSelector } from '@core'
 
-const VerifyRequiredRoute: React.FC = () => {
+const ProtectedRoute: React.FC = () => {
   const { isAuthenticated, loading, user } = useAppSelector(
     (state) => state.auth
   )
@@ -15,13 +15,13 @@ const VerifyRequiredRoute: React.FC = () => {
     return <Navigate to="/login" replace />
   }
 
-  // Se estiver autenticado e email já verificado, redireciona para dashboard
-  if (user?.isEmailVerified) {
-    return <Navigate to="/dashboard" replace />
+  // Se estiver autenticado mas o email não estiver verificado, redireciona para a página de verificação
+  if (user && !user.isEmailVerified) {
+    return <Navigate to="/verify-required" replace />
   }
 
-  // Se estiver autenticado mas email não verificado, permite acesso à página de verificação
+  // Se estiver autenticado e email verificado, permite acesso à rota protegida
   return <Outlet />
 }
 
-export default VerifyRequiredRoute
+export default ProtectedRoute

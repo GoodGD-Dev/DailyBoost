@@ -4,10 +4,14 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import { useAppDispatch, useAppSelector } from '@core/store/hooks'
-import { forgotPassword, clearError } from '@core/store/slices/authSlice'
-import FormButton from '@/shared/ui/FormButton'
-import { formVariants } from '@features/Auth/constants/animations'
+import {
+  useAppDispatch,
+  useAppSelector,
+  forgotPassword,
+  clearError
+} from '@core'
+import { formVariants } from '@features'
+import { FormButton } from '@shared'
 
 const ForgotPassword: React.FC = () => {
   // ========== HOOKS ==========

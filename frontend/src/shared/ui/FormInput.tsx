@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { formVariants } from '@features/Auth/constants/animations'
+import { formVariants } from '@features'
 import { FieldInputProps } from 'formik'
 
 interface FormInputProps {
@@ -9,7 +9,7 @@ interface FormInputProps {
   type?: string
   error?: string
   touched?: boolean
-  fieldProps: FieldInputProps<any>
+  fieldProps: FieldInputProps<string>
   className?: string
 }
 

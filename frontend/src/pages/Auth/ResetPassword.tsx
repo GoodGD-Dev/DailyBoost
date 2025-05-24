@@ -4,12 +4,16 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import { useAppDispatch, useAppSelector } from '@core/store/hooks'
-import { resetPassword, clearError } from '@core/store/slices/authSlice'
-import { formVariants } from '@features/Auth/constants/animations'
+import {
+  useAppDispatch,
+  useAppSelector,
+  resetPassword,
+  clearError
+} from '@core'
+import { formVariants } from '@features'
 
 // ========== COMPONENTES REUTILIZÁVEIS ==========
-import AuthForm from '@shared/ui/AuthForm'
+import AuthForm from '@/features/Auth/layout/AuthLayout'
 import FormInput from '@shared/ui/FormInput'
 import FormButton from '@/shared/ui/FormButton'
 import StatusMessage from '@shared/ui/StatusMessage'

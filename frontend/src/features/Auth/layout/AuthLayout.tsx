@@ -1,14 +1,14 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { formVariants } from '@features/Auth/constants/animations'
+import { formVariants } from '@features'
 
-interface AuthFormProps {
+interface AuthLayoutProps {
   title: string
   children: React.ReactNode
   className?: string
 }
 
-const AuthForm: React.FC<AuthFormProps> = ({
+const AuthLayout: React.FC<AuthLayoutProps> = ({
   title,
   children,
   className = 'max-w-md mx-auto'
@@ -36,4 +36,4 @@ const AuthForm: React.FC<AuthFormProps> = ({
   )
 }
 
-export default AuthForm
+export default AuthLayout

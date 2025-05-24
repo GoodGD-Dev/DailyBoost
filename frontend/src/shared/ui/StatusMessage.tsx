@@ -1,4 +1,3 @@
-// components/StatusMessage.tsx
 import React from 'react'
 
 interface StatusMessageProps {

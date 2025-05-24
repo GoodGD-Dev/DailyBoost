@@ -1,6 +1,6 @@
 export * from './components'
 //export * from './hooks'
-export * from './layout/Layout'
+export * from './layout'
 //export * from './types'
 export * from './ui'
 //export * from './utils'

@@ -1,13 +1,11 @@
 import React, { useState } from 'react'
-import { useAppSelector, useAppDispatch } from '@core/store/hooks'
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
-import { resendVerificationEmail } from '@core/store/slices/authSlice'
-import { useLogout } from '@features/Auth/hooks/useLogout'
-import { formVariants } from '@features/Auth/constants/animations'
+import { resendVerificationEmail, useAppSelector, useAppDispatch } from '@core'
+import { useLogout, formVariants } from '@features'
 
 // ========== COMPONENTES REUTILIZÁVEIS ==========
-import AuthForm from '@shared/ui/AuthForm'
+import AuthForm from '@/features/Auth/layout/AuthLayout'
 import StatusMessage from '@shared/ui/StatusMessage'
 
 const VerifyRequired: React.FC = () => {

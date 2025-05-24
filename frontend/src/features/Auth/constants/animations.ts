@@ -1,4 +1,3 @@
-// constants/animations.ts
 import { Variants } from 'framer-motion'
 
 // ========== ANIMAÇÕES BÁSICAS ==========
