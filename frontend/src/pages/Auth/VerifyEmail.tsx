@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@core/store/hooks'
-import { verifyEmail, clearError } from '@core/store/slices/authSlice'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
+import { useAppDispatch, useAppSelector } from '@core/store/hooks'
+import { verifyEmail, clearError } from '@core/store/slices/authSlice'
+import { formVariants } from '@features/Auth/constants/animations'
+
+// Interface para definir o tipo de erro
+interface ApiError {
+  message?: string
+  [key: string]: unknown
+}
 
 const VerifyEmail: React.FC = () => {
   // ========== HOOKS ==========
@@ -73,7 +80,7 @@ const VerifyEmail: React.FC = () => {
             // Atualiza URL no browser sem recarregar página
             window.history.replaceState({}, document.title, newUrl)
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           // ========== TRATAMENTO DE ERRO ==========
           console.error('Erro na verificação:', error)
         } finally {
@@ -86,28 +93,6 @@ const VerifyEmail: React.FC = () => {
       verify()
     }
   }, [token, dispatch, verificationAttempted, verificationInProgress])
-
-  // ========== CONFIGURAÇÕES DE ANIMAÇÃO ==========
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  }
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.4
-      }
-    }
-  }
 
   // ========== RENDER CONDICIONAL - LOADING STATES ==========
   // Estado 1: Verificação em progresso
@@ -143,14 +128,14 @@ const VerifyEmail: React.FC = () => {
   return (
     <motion.div
       className="max-w-md mx-auto"
-      variants={containerVariants}
+      variants={formVariants.container}
       initial="hidden"
       animate="visible"
     >
-      <motion.div className="card" variants={itemVariants}>
+      <motion.div className="card" variants={formVariants.item}>
         <motion.h2
           className="text-2xl font-bold text-center mb-6"
-          variants={itemVariants}
+          variants={formVariants.item}
         >
           Verificação de Email
         </motion.h2>
@@ -158,7 +143,7 @@ const VerifyEmail: React.FC = () => {
         {/* RENDERIZAÇÃO CONDICIONAL - Sucesso vs Erro */}
         {verified ? (
           // ========== ESTADO: VERIFICAÇÃO BEM-SUCEDIDA ==========
-          <motion.div variants={itemVariants}>
+          <motion.div variants={formVariants.item}>
             <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
               {/* Ícone de check (✓) */}
               <svg
@@ -190,7 +175,7 @@ const VerifyEmail: React.FC = () => {
           </motion.div>
         ) : (
           // ========== ESTADO: VERIFICAÇÃO FALHOU ==========
-          <motion.div variants={itemVariants}>
+          <motion.div variants={formVariants.item}>
             <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
               <svg
                 className="w-6 h-6 inline-block mr-2"

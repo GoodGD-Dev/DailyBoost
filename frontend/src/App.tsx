@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react'
+import { AnimatePresence } from 'framer-motion'
 import { useAppDispatch, useAppSelector } from '@core/store/hooks'
 import { loadUser } from '@core/store/slices/authSlice'
-import { AnimatePresence } from 'framer-motion'
 import Router from '@core/router/Router'
 import LoadingScreen from '@shared/components/LoadingScreen'
 

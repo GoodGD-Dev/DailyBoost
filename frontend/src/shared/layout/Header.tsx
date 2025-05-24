@@ -1,33 +1,14 @@
 import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import { useAppDispatch, useAppSelector } from '@core/store/hooks'
-import { logout } from '@core/store/slices/authSlice'
-import { toast } from 'react-toastify'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useAppSelector } from '@core/store/hooks'
+import { useLogout } from '@/features/Auth/hooks/useLogout'
 
-const Navbar: React.FC = () => {
-  const dispatch = useAppDispatch()
-  const navigate = useNavigate()
+const Header: React.FC = () => {
   const { isAuthenticated, user } = useAppSelector((state) => state.auth)
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
-  // ========== FUNÇÃO DE LOGOUT ==========
-  const handleLogout = async () => {
-    try {
-      // Dispara ação de logout no Redux
-      // .unwrap() converte Promise Redux em Promise normal
-      await dispatch(logout()).unwrap()
-
-      // Mostra notificação de sucesso
-      toast.success('Logout realizado com sucesso')
-
-      // Redireciona para página de login
-      navigate('/login')
-    } catch (error) {
-      // Se der erro, mostra notificação
-      toast.error('Erro ao fazer logout')
-    }
-  }
+  const { handleLogout, isLoading } = useLogout()
 
   // ========== RENDER ==========
   return (
@@ -45,7 +26,7 @@ const Navbar: React.FC = () => {
             to="/"
             className="text-indigo-600 font-bold text-xl tracking-tight"
           >
-            loginApp
+            DailyBoost
           </Link>
 
           {/* ========== MENU DESKTOP ========== */}
@@ -65,12 +46,21 @@ const Navbar: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Botão de logout */}
+                {/* ========== BOTÃO DE LOGOUT ========== */}
                 <button
-                  onClick={handleLogout}
-                  className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-all duration-200"
+                  onClick={() => handleLogout()} //
+                  disabled={isLoading} //
+                  className={`
+                    bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium
+                    transition-all duration-200
+                    ${
+                      isLoading
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:bg-indigo-50'
+                    }
+                  `}
                 >
-                  Sair
+                  {isLoading ? 'Saindo...' : 'Sair'}{' '}
                 </button>
               </>
             ) : (
@@ -150,12 +140,22 @@ const Navbar: React.FC = () => {
                   </span>
                 </div>
 
-                {/* Botão de logout */}
+                {/* ========== BOTÃO DE LOGOUT MOBILE CORRIGIDO ========== */}
                 <button
-                  onClick={handleLogout}
-                  className="bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-50 transition-all duration-200 w-full text-left"
+                  onClick={() => handleLogout()} // ✅ CORRETO: Chama a função do hook
+                  disabled={isLoading} // ✅ BONUS: Estado de loading
+                  className={`
+                    bg-white text-indigo-600 border border-indigo-200 px-4 py-2 rounded-lg text-sm font-medium
+                    transition-all duration-200 w-full text-left
+                    ${
+                      isLoading
+                        ? 'opacity-60 cursor-not-allowed'
+                        : 'hover:bg-indigo-50'
+                    }
+                  `}
                 >
-                  Sair
+                  {isLoading ? 'Saindo...' : 'Sair'}{' '}
+                  {/* ✅ BONUS: Feedback visual */}
                 </button>
               </div>
             ) : (
@@ -182,4 +182,4 @@ const Navbar: React.FC = () => {
   )
 }
 
-export default Navbar
+export default Header

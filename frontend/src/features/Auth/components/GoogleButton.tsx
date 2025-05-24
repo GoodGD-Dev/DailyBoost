@@ -6,6 +6,12 @@ import { auth } from '@core/config/firebase'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { motion } from 'framer-motion'
 
+// Interface para erros do Firebase
+interface FirebaseError extends Error {
+  code: string
+  customData?: unknown
+}
+
 const GoogleButton: React.FC = () => {
   // ========== HOOKS ==========
   const dispatch = useAppDispatch()
@@ -21,7 +27,7 @@ const GoogleButton: React.FC = () => {
       console.log('Criando provedor Google...')
       const provider = new GoogleAuthProvider()
 
-      // Adiciona escopos específicos para garantir acesso aos dados necessários      provider.addScope('profile')
+      // Adiciona escopos específicos para garantir acesso aos dados necessários
       provider.addScope('profile')
       provider.addScope('email')
 
@@ -60,28 +66,41 @@ const GoogleButton: React.FC = () => {
 
         // Mostra notificação de sucesso
         toast.success('Login com Google realizado com sucesso')
-      } catch (popupError: any) {
+      } catch (popupError) {
         // ========== TRATAMENTO DE ERROS DO POPUP ==========
-        console.error('Erro no popup:', popupError)
-        console.error('Código do erro:', popupError.code)
-        console.error('Mensagem do erro:', popupError.message)
+        const firebaseError = popupError as FirebaseError
+        console.error('Erro no popup:', firebaseError)
+        console.error('Código do erro:', firebaseError.code)
+        console.error('Mensagem do erro:', firebaseError.message)
 
         // Tratamento específico para erro de configuração
-        if (popupError.code === 'auth/configuration-not-found') {
+        if (firebaseError.code === 'auth/configuration-not-found') {
           toast.error(
             'Erro na configuração do Firebase. Verifique o console para mais detalhes.'
           )
+        } else if (firebaseError.code === 'auth/popup-closed-by-user') {
+          // Usuário fechou o popup - não mostra erro
+          console.log('Popup fechado pelo usuário')
+        } else if (firebaseError.code === 'auth/cancelled-popup-request') {
+          // Popup cancelado - não mostra erro
+          console.log('Popup cancelado')
         } else {
-          // Outros erros do popup (usuário cancelou, erro de rede, etc.)
+          // Outros erros do popup (erro de rede, etc.)
           toast.error(
-            popupError.message || 'Erro ao abrir popup de autenticação'
+            firebaseError.message || 'Erro ao abrir popup de autenticação'
           )
         }
       }
-    } catch (error: any) {
+    } catch (error) {
       // ========== TRATAMENTO DE ERROS GERAIS ==========
       console.error('Erro geral:', error)
-      toast.error(error.message || 'Erro ao fazer login com Google')
+
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Erro ao fazer login com Google'
+
+      toast.error(errorMessage)
     } finally {
       // ========== LIMPEZA ==========
       // Sempre executa, independente de sucesso ou erro

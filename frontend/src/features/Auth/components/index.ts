@@ -1,5 +1,1 @@
-export { default as Footer } from './Footer'
-export { default as FormButton } from './FormButton'
 export { default as GoogleButton } from './GoogleButton'
-export { default as Layout } from './Layout'
-export { default as Navbar } from './Navbar'

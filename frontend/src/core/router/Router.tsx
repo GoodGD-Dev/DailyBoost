@@ -12,16 +12,15 @@ import Register from '@pages/Auth/Register'
 import ForgotPassword from '@pages/Auth/ForgotPassword'
 import ResetPassword from '@pages/Auth/ResetPassword'
 import VerifyEmail from '@pages/Auth/VerifyEmail'
-import EmailVerificationRequired from '@pages/Auth/EmailVerificationRequired'
-import Logout from '@pages/Auth/Logout'
+import VerifyRequired from '@/pages/Auth/VerifyRequired'
 import Dashboard from '@pages/Dashboard'
 import NotFound from '@pages/NotFound'
 
 // Access Control
-import ProtectedRoute from '@shared/components/router/ProtectedRoute'
-import PublicRoute from '@shared/components/router/PublicRoute'
-import VerifyRequiredRoute from '@shared/components/router/VerifyRequiredRoute'
-import Layout from '@features/Auth/components/Layout'
+import ProtectedRoute from './ProtectedRoute'
+import PublicRoute from './PublicRoute'
+import VerifyRequiredRoute from './VerifyRequiredRoute'
+import Layout from '@/shared/layout/Layout'
 
 // Routes
 const routes: RouteObject[] = [
@@ -42,17 +41,14 @@ const routes: RouteObject[] = [
           { path: 'register', element: <Register /> },
           { path: 'forgot-password', element: <ForgotPassword /> },
           { path: 'reset-password/:token', element: <ResetPassword /> },
-          { path: 'verify-email/:token', element: <VerifyEmail /> },
-          { path: 'logout', element: <Logout /> }
+          { path: 'verify-email/:token', element: <VerifyEmail /> }
         ]
       },
 
       // ROTA PARA VERIFICAÇÃO DE EMAIL - Para usuários logados mas com email não verificado
       {
         element: <VerifyRequiredRoute />, // Componente que verifica se o email precisa ser verificado
-        children: [
-          { path: 'verify-required', element: <EmailVerificationRequired /> }
-        ]
+        children: [{ path: 'verify-required', element: <VerifyRequired /> }]
       },
 
       // ROTAS PRIVADAS - Acessíveis apenas para usuários logados E com email verificado
@@ -65,6 +61,7 @@ const routes: RouteObject[] = [
     ]
   }
 ]
+
 //RouterApp
 const Router: React.FC = () => {
   const router = createBrowserRouter(routes)

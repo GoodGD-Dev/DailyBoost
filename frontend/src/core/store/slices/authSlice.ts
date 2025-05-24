@@ -40,6 +40,16 @@ interface ResetPasswordData {
   password: string
 }
 
+// Interface para erros da API
+interface ApiError {
+  response?: {
+    data?: {
+      message?: string
+    }
+  }
+  message?: string
+}
+
 // ========== ESTADO INICIAL ==========
 
 // Estado inicial
@@ -60,10 +70,11 @@ export const loadUser = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await authService.getCurrentUser()
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       // Se der erro, retorna uma mensagem amigável
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao carregar usuário'
+        apiError.response?.data?.message || 'Erro ao carregar usuário'
       )
     }
   }
@@ -75,9 +86,10 @@ export const login = createAsyncThunk(
   async (credentials: LoginCredentials, { rejectWithValue }) => {
     try {
       return await authService.login(credentials)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao fazer login'
+        apiError.response?.data?.message || 'Erro ao fazer login'
       )
     }
   }
@@ -89,9 +101,10 @@ export const googleLogin = createAsyncThunk(
   async (idToken: string, { rejectWithValue }) => {
     try {
       return await authService.googleLogin(idToken)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao fazer login com Google'
+        apiError.response?.data?.message || 'Erro ao fazer login com Google'
       )
     }
   }
@@ -104,9 +117,10 @@ export const register = createAsyncThunk(
     try {
       // Retorna o usuário
       return await authService.register(userData)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao registrar usuário'
+        apiError.response?.data?.message || 'Erro ao registrar usuário'
       )
     }
   }
@@ -119,9 +133,10 @@ export const verifyEmail = createAsyncThunk(
     try {
       const response = await authService.verifyEmail(token)
       return response // Retorna dados atualizados do usuário
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao verificar email'
+        apiError.response?.data?.message || 'Erro ao verificar email'
       )
     }
   }
@@ -133,9 +148,11 @@ export const resendVerificationEmail = createAsyncThunk(
   async (email: string, { rejectWithValue }) => {
     try {
       return await authService.resendVerificationEmail(email)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao reenviar email de verificação'
+        apiError.response?.data?.message ||
+          'Erro ao reenviar email de verificação'
       )
     }
   }
@@ -147,9 +164,11 @@ export const forgotPassword = createAsyncThunk(
   async (email: string, { rejectWithValue }) => {
     try {
       return await authService.forgotPassword(email)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao enviar email de recuperação'
+        apiError.response?.data?.message ||
+          'Erro ao enviar email de recuperação'
       )
     }
   }
@@ -161,9 +180,10 @@ export const resetPassword = createAsyncThunk(
   async (data: ResetPasswordData, { rejectWithValue }) => {
     try {
       return await authService.resetPassword(data.token, data.password)
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao redefinir senha'
+        apiError.response?.data?.message || 'Erro ao redefinir senha'
       )
     }
   }
@@ -175,9 +195,10 @@ export const logout = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       return await authService.logout()
-    } catch (error: any) {
+    } catch (error) {
+      const apiError = error as ApiError
       return rejectWithValue(
-        error.response?.data?.message || 'Erro ao fazer logout'
+        apiError.response?.data?.message || 'Erro ao fazer logout'
       )
     }
   }
