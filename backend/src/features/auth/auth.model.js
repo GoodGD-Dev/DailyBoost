@@ -2,32 +2,36 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 /**
- * Esquema de usuário que define a estrutura do documento na coleção do MongoDB
- * Contém todos os campos necessários para gerenciar usuários e autenticação
+ * Esquema de usuário atualizado para suportar registro em duas etapas
+ * Primeiro solicita email, depois completa com nome e senha
  */
 const UserSchema = new mongoose.Schema({
-  // Nome do usuário
+  // Nome do usuário (opcional até completar registro)
   name: {
     type: String,
-    required: [true, 'Por favor, informe um nome']
+    required: function () {
+      // Nome é obrigatório apenas se não for login do Google e se password existir
+      return !this.googleId && this.password;
+    }
   },
 
   // Email do usuário
   email: {
     type: String,
     required: [true, 'Por favor, informe um email'],
-    unique: true,     // Garante que o email seja único na coleção
-    lowercase: true   // Converte automaticamente para minúsculas
+    unique: true,
+    lowercase: true
   },
 
-  // Senha do usuário
+  // Senha do usuário (opcional até completar registro)
   password: {
     type: String,
     required: function () {
-      return !this.googleId; // Função condicional: senha só é obrigatória se não tiver login pelo Google
+      // Senha é obrigatória apenas se não for login do Google e se name existir
+      return !this.googleId && this.name;
     },
-    minlength: 6,   // Exige pelo menos 6 caracteres
-    select: false   // Por padrão, não inclui este campo nas consultas (segurança)
+    minlength: 6,
+    select: false
   },
 
   // ID do Google para autenticação OAuth
@@ -36,16 +40,17 @@ const UserSchema = new mongoose.Schema({
   },
 
   // Flag para controlar se o email foi verificado
+  // Como não precisamos mais verificar email, sempre será true
   isEmailVerified: {
     type: Boolean,
-    default: false    // Por padrão, o email não está verificado
+    default: true
   },
 
-  // Token para verificação de email
-  emailVerificationToken: String,
+  // Token para continuação do registro (substitui emailVerificationToken)
+  registrationToken: String,
 
-  // Data de expiração do token de verificação de email
-  emailVerificationExpires: Date,
+  // Data de expiração do token de registro
+  registrationTokenExpires: Date,
 
   // Token para redefinição de senha
   resetPasswordToken: String,
@@ -56,7 +61,7 @@ const UserSchema = new mongoose.Schema({
   // Data de criação da conta
   createdAt: {
     type: Date,
-    default: Date.now   // Define automaticamente para a data/hora atual
+    default: Date.now
   }
 });
 
@@ -65,18 +70,11 @@ const UserSchema = new mongoose.Schema({
  * Criptografa a senha automaticamente quando é criada ou modificada
  */
 UserSchema.pre('save', async function (next) {
-  // Verifica se a senha foi modificada (ou é nova)
-  // Isso evita recriptografar a senha em outras atualizações do usuário
-  if (!this.isModified('password')) return next();
+  // Só criptografa se a senha foi modificada E existe
+  if (!this.isModified('password') || !this.password) return next();
 
-  // Gera um salt (valor aleatório) para tornar o hash mais seguro
-  // O valor 10 define o custo computacional (mais alto = mais seguro, porém mais lento)
   const salt = await bcrypt.genSalt(10);
-
-  // Criptografa a senha com o salt gerado
   this.password = await bcrypt.hash(this.password, salt);
-
-  // Continua o processo de salvamento
   next();
 });
 
@@ -88,7 +86,10 @@ UserSchema.pre('save', async function (next) {
  * @returns {boolean} - Verdadeiro se a senha corresponder, falso caso contrário
  */
 UserSchema.methods.matchPassword = async function (enteredPassword) {
-  // Compara a senha fornecida com o hash armazenado
+  // Verifica se a senha existe antes de comparar
+  if (!this.password) {
+    return false;
+  }
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

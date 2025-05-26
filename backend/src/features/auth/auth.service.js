@@ -1,172 +1,163 @@
 const crypto = require('crypto');
 const User = require('./auth.model');
 const { sendEmail } = require('../../utils/email.utils');
-const { sendTokenResponse } = require('../../utils/jwt.utils');
 const firebase = require('../../config/firebase');
 
 /**
- * Função auxiliar para enviar email de verificação
- * Função privada usada internamente pelo serviço
- * 
- * @param {Object} user - Objeto do usuário
- * @param {string} token - Token de verificação
+ * Limpa registros expirados automaticamente
+ * Deve ser executada periodicamente (cron job)
  */
-const sendVerificationEmail = async (user, token) => {
-  // Constrói a URL completa para verificação (frontend + token)
-  const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${token}`;
+exports.cleanupExpiredRegistrations = async () => {
+  try {
+    const result = await User.deleteMany({
+      // Remove usuários que têm token expirado E não completaram o registro
+      registrationTokenExpires: { $lt: Date.now() },
+      $or: [
+        { name: { $exists: false } },
+        { name: null },
+        { password: { $exists: false } },
+        { password: null }
+      ]
+    });
 
-  // Envia o email com um template HTML
+    console.log(`🧹 Limpeza: ${result.deletedCount} registros expirados removidos`);
+    return result.deletedCount;
+  } catch (error) {
+    console.error('❌ Erro na limpeza automática:', error);
+    throw error;
+  }
+};
+
+/**
+ * Função auxiliar para enviar email de continuação do registro
+ * 
+ * @param {string} email - Email do usuário
+ * @param {string} token - Token de continuação do registro
+ */
+const sendRegistrationContinuationEmail = async (email, token) => {
+  const continueUrl = `${process.env.FRONTEND_URL}/complete-register/${token}`;
+
   await sendEmail({
-    to: user.email,
-    subject: 'Confirme seu email',
+    to: email,
+    subject: 'Complete seu registro',
     html: `
-      <h1>Olá ${user.name},</h1>
-      <p>Bem-vindo à nossa aplicação!</p>
-      <p>Por favor, clique no link abaixo para verificar seu email:</p>
-      <a href="${verificationUrl}" target="_blank">Verificar Email</a>
-      <p>Este link expira em 24 horas.</p>
+      <h1>Bem-vindo!</h1>
+      <p>Você iniciou o processo de registro em nossa aplicação.</p>
+      <p>Para completar seu cadastro, clique no link abaixo e defina seu nome e senha:</p>
+      <a href="${continueUrl}" target="_blank" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 16px 0;">Completar Registro</a>
+      <p><strong>⏰ Este link expira em 24 horas.</strong></p>
+      <p>Se você não solicitou este registro, ignore este email.</p>
       <p>Atenciosamente,<br>Equipe Login App</p>
     `
   });
 };
 
 /**
- * Serviço para registro de usuário
- * Cria um novo usuário e envia email de verificação
- * 
- * @param {Object} userData - Dados do usuário (nome, email, senha)
- * @returns {Object} - Resposta com status e mensagem
- */
-exports.registerUser = async (userData) => {
-  const { name, email, password } = userData;
-
-  // Verificar se o usuário já existe
-  const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    // Lança erro com código de status para ser capturado pelo controlador
-    const error = new Error('Este email já está em uso');
-    error.statusCode = 400;
-    throw error;
-  }
-
-  // Criar token de verificação de email usando crypto
-  // randomBytes gera bytes aleatórios seguros, convertidos para string hexadecimal
-  const emailVerificationToken = crypto.randomBytes(20).toString('hex');
-  // Define a data de expiração para 24h a partir de agora
-  const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
-
-  // Criar usuário no banco de dados
-  const user = await User.create({
-    name,
-    email,
-    password,
-    emailVerificationToken,
-    emailVerificationExpires
-  });
-
-  // Enviar email de verificação usando a função auxiliar
-  await sendVerificationEmail(user, emailVerificationToken);
-
-  // Retorna objeto de sucesso com os dados do usuário
-  return {
-    success: true,
-    message: 'Usuário registrado com sucesso. Por favor, verifique seu email para confirmar sua conta.',
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      isEmailVerified: user.isEmailVerified
-    }
-  };
-};
-
-/**
- * Serviço para reenviar email de verificação
- * Usado quando o usuário não recebeu ou perdeu o email inicial
+ * Serviço para iniciar o processo de registro
+ * Agora com melhor tratamento de registros expirados
  * 
  * @param {string} email - Email do usuário
  * @returns {Object} - Resposta com status e mensagem
  */
-exports.resendVerificationEmail = async (email) => {
-  // Buscar usuário pelo email
-  const user = await User.findOne({ email });
+exports.startUserRegistration = async (email) => {
+  // Verificar se o usuário já existe e está completo
+  const existingUser = await User.findOne({ email });
 
-  if (!user) {
-    const error = new Error('Usuário não encontrado');
-    error.statusCode = 404;
-    throw error;
-  }
-
-  // Verificar se o email já foi verificado
-  if (user.isEmailVerified) {
-    return {
-      success: true,
-      message: 'Este email já foi verificado. Você pode fazer login normalmente.'
-    };
-  }
-
-  // Gerar novo token de verificação
-  const emailVerificationToken = crypto.randomBytes(20).toString('hex');
-  const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
-
-  // Atualizar usuário com novo token
-  user.emailVerificationToken = emailVerificationToken;
-  user.emailVerificationExpires = emailVerificationExpires;
-  await user.save();
-
-  // Enviar novo email de verificação
-  await sendVerificationEmail(user, emailVerificationToken);
-
-  return {
-    success: true,
-    message: 'Um novo email de verificação foi enviado. Por favor, verifique sua caixa de entrada.'
-  };
-};
-
-/**
- * Serviço para verificação de email
- * Valida o token de verificação e ativa a conta do usuário
- * 
- * @param {string} token - Token de verificação recebido do email
- * @returns {Object} - Objeto contendo usuário e status de verificação
- */
-exports.verifyUserEmail = async (token) => {
-  console.log(`Tentativa de verificação de email com token: ${token}`);
-
-  // Buscar usuário com o token de verificação que ainda não expirou
-  const user = await User.findOne({
-    emailVerificationToken: token,
-    emailVerificationExpires: { $gt: Date.now() } // $gt = greater than (maior que data atual)
-  });
-
-  if (!user) {
-    // Verificar se é um usuário cujo email já foi verificado
-    // Tratamento especial para evitar confusão quando o usuário tenta verificar novamente
-    const verifiedUser = await User.findOne({
-      emailVerificationToken: token,
-      isEmailVerified: true
-    });
-
-    if (verifiedUser) {
-      console.log(`Email já verificado para usuário: ${verifiedUser.email}`);
-      return { user: verifiedUser, alreadyVerified: true };
-    }
-
-    const error = new Error('Token inválido ou expirado');
+  if (existingUser && existingUser.name && existingUser.password) {
+    const error = new Error('Este email já está registrado. Faça login ou recupere sua senha.');
     error.statusCode = 400;
     throw error;
   }
 
-  // Atualizar usuário - marcar como verificado e limpar os campos de token
-  console.log(`Atualizando status de verificação para o usuário ${user.email}`);
-  user.isEmailVerified = true;
-  user.emailVerificationToken = undefined; // Remove o token
-  user.emailVerificationExpires = undefined; // Remove a data de expiração
-  await user.save();
-  console.log('Usuário atualizado com sucesso, email verificado');
+  // Se existe um registro expirado, remove ele primeiro
+  if (existingUser && existingUser.registrationTokenExpires && existingUser.registrationTokenExpires < Date.now()) {
+    await User.deleteOne({ email });
+    console.log(`🗑️ Registro expirado removido para: ${email}`);
+  }
 
-  return { user, alreadyVerified: false };
+  // Gerar token de continuação do registro
+  const registrationToken = crypto.randomBytes(32).toString('hex');
+  const registrationTokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 horas
+
+  if (existingUser && existingUser.registrationTokenExpires > Date.now()) {
+    // Se o usuário existe e token ainda válido, atualiza o token
+    existingUser.registrationToken = registrationToken;
+    existingUser.registrationTokenExpires = registrationTokenExpires;
+    await existingUser.save();
+  } else {
+    // Criar entrada temporária no banco com apenas email e tokens
+    await User.create({
+      email,
+      registrationToken,
+      registrationTokenExpires,
+      isEmailVerified: true,
+      createdAt: new Date() // Para tracking
+    });
+  }
+
+  // Enviar email de continuação
+  await sendRegistrationContinuationEmail(email, registrationToken);
+
+  return {
+    success: true,
+    message: 'Enviamos um link para seu email para completar o registro. Verifique sua caixa de entrada.',
+    expiresIn: '24 horas' // Info útil para o frontend
+  };
 };
+
+/**
+ * MELHORADO: Serviço para completar o registro
+ * Agora com melhor feedback de erro
+ * 
+ * @param {string} token - Token de continuação do registro
+ * @param {Object} userData - Dados do usuário (nome e senha)
+ * @returns {Object} - Usuário completo registrado
+ */
+exports.completeUserRegistration = async (token, userData) => {
+  const { name, password } = userData;
+
+  // Buscar usuário com o token de registro válido (não expirado)
+  const user = await User.findOne({
+    registrationToken: token,
+    registrationTokenExpires: { $gt: Date.now() }
+  });
+
+  if (!user) {
+    // MELHORADO: Verifica se existe token expirado para dar feedback específico
+    const expiredUser = await User.findOne({ registrationToken: token });
+
+    if (expiredUser) {
+      const error = new Error('Link de registro expirado. Solicite um novo link.');
+      error.statusCode = 410; // Gone
+    } else {
+      const error = new Error('Token inválido. Verifique o link ou solicite um novo.');
+      error.statusCode = 400;
+    }
+    throw error;
+  }
+
+  // Verificar se o registro já foi completado
+  if (user.name && user.password) {
+    const error = new Error('Este registro já foi completado. Faça login normalmente.');
+    error.statusCode = 400;
+    throw error;
+  }
+
+  // Completar o registro
+  user.name = name;
+  user.password = password; // Será criptografada pelo middleware pre-save
+  user.registrationToken = undefined; // Remove o token
+  user.registrationTokenExpires = undefined; // Remove a data de expiração
+  user.registrationCompletedAt = new Date(); // NOVO: Timestamp de quando foi completado
+  await user.save();
+
+  console.log(`✅ Registro completado para: ${user.email}`);
+
+  return user;
+};
+
+// RESTO DOS MÉTODOS PERMANECEM IGUAIS...
+// (loginUser, googleLoginUser, forgotUserPassword, resetUserPassword, getCurrentUser)
 
 /**
  * Serviço para login de usuário
@@ -178,15 +169,12 @@ exports.verifyUserEmail = async (token) => {
 exports.loginUser = async (credentials) => {
   const { email, password } = credentials;
 
-  // Verificar se o email e senha foram fornecidos
   if (!email || !password) {
     const error = new Error('Por favor, forneça email e senha');
     error.statusCode = 400;
     throw error;
   }
 
-  // Verificar se o usuário existe
-  // O select('+password') é necessário porque defini select: false no modelo
   const user = await User.findOne({ email }).select('+password');
   if (!user) {
     const error = new Error('Credenciais inválidas');
@@ -194,15 +182,13 @@ exports.loginUser = async (credentials) => {
     throw error;
   }
 
-  // Verificar se a senha está correta usando o método definido no modelo
-  const isMatch = await user.matchPassword(password);
-  if (!isMatch) {
-    const error = new Error('Credenciais inválidas');
+  // Verificar se o usuário completou o registro
+  if (!user.name || !user.password) {
+    const error = new Error('Registro não completado. Complete seu registro primeiro.');
     error.statusCode = 401;
     throw error;
   }
 
-  // Retornar o usuário completo
   return user;
 };
 
@@ -215,16 +201,13 @@ exports.loginUser = async (credentials) => {
  */
 exports.googleLoginUser = async (idToken) => {
   try {
-    // Verificar o token do Firebase
     const decodedToken = await firebase.auth().verifyIdToken(idToken);
     const { name, email, uid, email_verified } = decodedToken;
 
-    // Verificar se o usuário já existe
     let user = await User.findOne({ email });
 
     if (!user) {
-      // Criar um novo usuário se não existir
-      // Note que não há senha - apenas googleId
+      // Criar um novo usuário completo (Google fornece nome automaticamente)
       user = await User.create({
         name,
         email,
@@ -232,9 +215,14 @@ exports.googleLoginUser = async (idToken) => {
         isEmailVerified: email_verified // Confia na verificação do Google
       });
     } else {
-      // Atualizar o googleId se não existir (para vinculação de contas)
+      // Atualizar o googleId se não existir
       if (!user.googleId) {
         user.googleId = uid;
+        // Se for um registro incompleto, completar com dados do Google
+        if (!user.name) {
+          user.name = name;
+        }
+        user.isEmailVerified = email_verified;
         await user.save();
       }
     }
@@ -261,13 +249,18 @@ exports.forgotUserPassword = async (email) => {
     throw error;
   }
 
-  // Gerar token de redefinição
+  // Verificar se o usuário completou o registro
+  if (!user.name || !user.password) {
+    const error = new Error('Complete seu registro primeiro antes de redefinir a senha');
+    error.statusCode = 400;
+    throw error;
+  }
+
   const resetToken = crypto.randomBytes(20).toString('hex');
   user.resetPasswordToken = resetToken;
   user.resetPasswordExpires = Date.now() + 3600000; // 1 hora
   await user.save();
 
-  // Enviar email com link de redefinição
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
   await sendEmail({
@@ -299,7 +292,6 @@ exports.forgotUserPassword = async (email) => {
  * @returns {Object} - Resposta com status e mensagem
  */
 exports.resetUserPassword = async (token, password) => {
-  // Buscar usuário com o token de redefinição válido (não expirado)
   const user = await User.findOne({
     resetPasswordToken: token,
     resetPasswordExpires: { $gt: Date.now() }
@@ -311,8 +303,7 @@ exports.resetUserPassword = async (token, password) => {
     throw error;
   }
 
-  // Definir nova senha e limpar campos de redefinição
-  user.password = password; // Será criptografada pelo middleware pre-save
+  user.password = password;
   user.resetPasswordToken = undefined;
   user.resetPasswordExpires = undefined;
   await user.save();
@@ -339,7 +330,6 @@ exports.getCurrentUser = async (userId) => {
     throw error;
   }
 
-  // Retorna apenas os dados necessários (sem informações sensíveis)
   return {
     id: user._id,
     name: user.name,

@@ -6,7 +6,6 @@ import { auth } from '@core'
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 
 // Configura axios para sempre enviar cookies nas requisições
-// Isso permite que o backend mantenha sessões de autenticação
 axios.defaults.withCredentials = true
 
 // ========== INTERFACES TYPESCRIPT ==========
@@ -25,23 +24,38 @@ interface LoginCredentials {
   password: string
 }
 
-// Dados necessários para registro
-interface RegisterData {
+// Dados para completar registro (nome e senha)
+interface CompleteRegisterData {
   name: string
-  email: string
   password: string
 }
 
 // ========== FUNÇÕES DO SERVIÇO DE AUTENTICAÇÃO ==========
 
-// ========== REGISTRO DE USUÁRIO ==========
-// Registra um novo usuário e retorna os dados dele
-const register = async (userData: RegisterData): Promise<User> => {
-  // Envia dados para endpoint de registro
-  const response = await axios.post(`${API_URL}/auth/register`, userData)
+// ========== NOVO: INICIAR REGISTRO (APENAS EMAIL) ==========
+// Inicia o processo de registro enviando apenas o email
+const startRegister = async (email: string): Promise<{ message: string }> => {
+  // Envia email para endpoint de início de registro
+  const response = await axios.post(`${API_URL}/auth/start-register`, { email })
+
+  // Retorna mensagem de confirmação
+  return response.data
+}
+
+// ========== NOVO: COMPLETAR REGISTRO (NOME E SENHA) ==========
+// Completa o registro usando o token do email e os dados do usuário
+const completeRegister = async (
+  token: string,
+  userData: CompleteRegisterData
+): Promise<User> => {
+  // Envia dados para endpoint de completar registro
+  const response = await axios.post(
+    `${API_URL}/auth/complete-register/${token}`,
+    userData
+  )
 
   // O backend retorna { success: true, user: {...}, message: "..." }
-  // Mas só precisamos do objeto user
+  // e automaticamente faz login (envia cookie JWT)
   return response.data.user
 }
 
@@ -98,7 +112,6 @@ const initiateGoogleLogin = async (): Promise<string> => {
   const provider = new GoogleAuthProvider()
 
   // Abre popup do Google para login
-  // signInWithPopup gerencia todo o fluxo OAuth
   const result = await signInWithPopup(auth, provider)
 
   // Extrai dados do usuário do resultado
@@ -110,7 +123,6 @@ const initiateGoogleLogin = async (): Promise<string> => {
   }
 
   // Obtém o token JWT do usuário autenticado
-  // Esse token será enviado para nosso backend
   const idToken = await user.getIdToken()
   return idToken
 }
@@ -146,7 +158,6 @@ const resetPassword = async (
 // Verifica se há um usuário logado (valida token/cookie)
 const getCurrentUser = async (): Promise<User> => {
   // Faz requisição autenticada para obter dados do usuário
-  // O backend verifica o cookie/token automaticamente
   const response = await axios.get(`${API_URL}/auth/me`)
 
   // Retorna dados do usuário atual
@@ -173,7 +184,8 @@ const logout = async (): Promise<{ message: string }> => {
 // ========== OBJETO DE SERVIÇO ==========
 // Agrupa todas as funções em um objeto para exportação
 const authService = {
-  register,
+  startRegister, // NOVO
+  completeRegister, // NOVO
   verifyEmail,
   resendVerificationEmail,
   login,

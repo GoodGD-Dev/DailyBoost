@@ -13,6 +13,7 @@ import {
   Login,
   NotFound,
   Register,
+  CompleteRegister,
   ResetPassword,
   VerifyEmail,
   VerifyRequired
@@ -20,7 +21,6 @@ import {
 
 // Access Control
 import { ProtectedRoute, PublicRoute, VerifyRequiredRoute } from '@core'
-
 import { MainLayout } from '@shared'
 
 // Routes
@@ -36,10 +36,10 @@ const routes: RouteObject[] = [
         children: [
           // Rota inicial - redireciona automaticamente para /login
           { index: true, element: <Navigate to="/login" replace /> },
-
           // Páginas de autenticação
           { path: 'login', element: <Login /> },
           { path: 'register', element: <Register /> },
+          { path: 'complete-register/:token', element: <CompleteRegister /> }, // NOVA ROTA
           { path: 'forgot-password', element: <ForgotPassword /> },
           { path: 'reset-password/:token', element: <ResetPassword /> },
           { path: 'verify-email/:token', element: <VerifyEmail /> }
@@ -57,6 +57,7 @@ const routes: RouteObject[] = [
         element: <ProtectedRoute />, // Componente que verifica se o usuário está logado e verificado
         children: [{ path: 'dashboard', element: <Dashboard /> }] // /dashboard - página principal do app
       },
+
       // ROTA 404 - Captura qualquer URL que não foi definida acima
       { path: '*', element: <NotFound /> } // Qualquer rota não encontrada mostra página 404
     ]
@@ -68,4 +69,5 @@ const Router: React.FC = () => {
   const router = createBrowserRouter(routes)
   return <RouterProvider router={router} />
 }
+
 export default Router

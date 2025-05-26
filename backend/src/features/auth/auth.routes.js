@@ -8,17 +8,13 @@ const { protect } = require('./auth.middleware');
  * Estas rotas são acessíveis sem autenticação
  */
 
-// Rota para registro de novos usuários
-// POST /api/auth/register
-router.post('/register', authController.register);
+// Rota para iniciar registro (solicita apenas email)
+// POST /api/auth/start-register
+router.post('/start-register', authController.startRegister);
 
-// Rota para verificar o email usando o token enviado por email
-// GET /api/auth/verify-email/:token
-router.get('/verify-email/:token', authController.verifyEmail);
-
-// Rota para reenviar o email de verificação
-// POST /api/auth/resend-verification
-router.post('/resend-verification', authController.resendVerificationEmail);
+// Rota para completar registro (nome e senha com token)
+// POST /api/auth/complete-register/:token
+router.post('/complete-register/:token', authController.completeRegister);
 
 // Rota para login tradicional (email/senha)
 // POST /api/auth/login

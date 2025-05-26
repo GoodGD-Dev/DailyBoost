@@ -9,6 +9,8 @@ interface AuthState {
   isAuthenticated: boolean
   loading: boolean
   error: string | null
+  registrationStage: 'email' | 'complete' | null // Nova propriedade para controlar as etapas
+  registrationEmail: string | null // Email usado no registro
 }
 
 // Interface para o usuário
@@ -27,10 +29,14 @@ interface LoginCredentials {
   password: string
 }
 
-// Dados necessários para se registrar
-interface RegisterCredentials {
-  name: string
+// Dados para iniciar registro (apenas email)
+interface StartRegisterData {
   email: string
+}
+
+// Dados para completar registro (nome e senha)
+interface CompleteRegisterData {
+  name: string
   password: string
 }
 
@@ -57,14 +63,14 @@ const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
   loading: true, // Começa como true para verificar o token existente no início
-  error: null
+  error: null,
+  registrationStage: null, // Nova propriedade
+  registrationEmail: null // Nova propriedade
 }
 
 // ========== AÇÕES ASSÍNCRONAS (THUNKS) ==========
-// Cada thunk representa uma operação que pode demorar (chamada para API)
 
 // Verifica se há um usuário logado quando a aplicação inicia
-// (verifica se existe um token JWT válido salvo no navegador)
 export const loadUser = createAsyncThunk(
   'auth/loadUser',
   async (_, { rejectWithValue }) => {
@@ -72,7 +78,6 @@ export const loadUser = createAsyncThunk(
       return await authService.getCurrentUser()
     } catch (error) {
       const apiError = error as ApiError
-      // Se der erro, retorna uma mensagem amigável
       return rejectWithValue(
         apiError.response?.data?.message || 'Erro ao carregar usuário'
       )
@@ -110,17 +115,35 @@ export const googleLogin = createAsyncThunk(
   }
 )
 
-// Registra um novo usuário
-export const register = createAsyncThunk(
-  'auth/register',
-  async (userData: RegisterCredentials, { rejectWithValue }) => {
+// ========== NOVO: INICIA REGISTRO (APENAS EMAIL) ==========
+export const startRegister = createAsyncThunk(
+  'auth/startRegister',
+  async (data: StartRegisterData, { rejectWithValue }) => {
     try {
-      // Retorna o usuário
-      return await authService.register(userData)
+      const response = await authService.startRegister(data.email)
+      return { ...response, email: data.email } // Inclui o email na resposta
     } catch (error) {
       const apiError = error as ApiError
       return rejectWithValue(
-        apiError.response?.data?.message || 'Erro ao registrar usuário'
+        apiError.response?.data?.message || 'Erro ao iniciar registro'
+      )
+    }
+  }
+)
+
+// ========== NOVO: COMPLETA REGISTRO (NOME E SENHA) ==========
+export const completeRegister = createAsyncThunk(
+  'auth/completeRegister',
+  async (
+    { token, data }: { token: string; data: CompleteRegisterData },
+    { rejectWithValue }
+  ) => {
+    try {
+      return await authService.completeRegister(token, data)
+    } catch (error) {
+      const apiError = error as ApiError
+      return rejectWithValue(
+        apiError.response?.data?.message || 'Erro ao completar registro'
       )
     }
   }
@@ -132,7 +155,7 @@ export const verifyEmail = createAsyncThunk(
   async (token: string, { rejectWithValue }) => {
     try {
       const response = await authService.verifyEmail(token)
-      return response // Retorna dados atualizados do usuário
+      return response
     } catch (error) {
       const apiError = error as ApiError
       return rejectWithValue(
@@ -211,34 +234,37 @@ const authSlice = createSlice({
   initialState,
 
   // ========== REDUCERS SÍNCRONOS ==========
-  // Ações que acontecem imediatamente, sem esperar API
   reducers: {
     // Limpa mensagens de erro
     clearError: (state) => {
       state.error = null
+    },
+
+    // Reseta o estado de registro
+    resetRegistration: (state) => {
+      state.registrationStage = null
+      state.registrationEmail = null
     }
   },
 
   // ========== REDUCERS ASSÍNCRONOS ==========
-  // Define o que acontece quando cada thunk (ação assíncrona) executa
-  // Cada thunk tem 3 estados: pending (carregando), fulfilled (sucesso), rejected (erro)
   extraReducers: (builder) => {
     builder
       // ========== CASOS PARA loadUser ==========
       .addCase(loadUser.pending, (state) => {
-        state.loading = true // Mostra indicador de carregamento
+        state.loading = true
       })
       .addCase(loadUser.fulfilled, (state, action: PayloadAction<User>) => {
-        state.loading = false // Para loading
-        state.isAuthenticated = true // Marca como autenticado
-        state.user = action.payload // Salva dados do usuário
-        state.error = null // Limpa erros
+        state.loading = false
+        state.isAuthenticated = true
+        state.user = action.payload
+        state.error = null
       })
       .addCase(loadUser.rejected, (state, action) => {
-        state.loading = false // Para loading
-        state.isAuthenticated = false // Não autenticado
-        state.user = null // Remove dados do usuário
-        state.error = action.payload as string // Salva mensagem de erro
+        state.loading = false
+        state.isAuthenticated = false
+        state.user = null
+        state.error = action.payload as string
       })
 
       // ========== CASOS PARA login ==========
@@ -250,6 +276,9 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.user = action.payload
         state.error = null
+        // Limpa dados de registro ao fazer login
+        state.registrationStage = null
+        state.registrationEmail = null
       })
       .addCase(login.rejected, (state, action) => {
         state.loading = false
@@ -265,29 +294,45 @@ const authSlice = createSlice({
         state.isAuthenticated = true
         state.user = action.payload
         state.error = null
+        // Limpa dados de registro ao fazer login
+        state.registrationStage = null
+        state.registrationEmail = null
       })
       .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
 
-      // ========== CASOS PARA register ==========
-      .addCase(register.pending, (state) => {
+      // ========== NOVO: CASOS PARA startRegister ==========
+      .addCase(startRegister.pending, (state) => {
         state.loading = true
       })
-      .addCase(register.fulfilled, (state, action: PayloadAction<User>) => {
+      .addCase(startRegister.fulfilled, (state, action) => {
         state.loading = false
-        state.isAuthenticated = true
-        state.user = action.payload
         state.error = null
-
-        // Verificação extra para garantir que recebemos dados válidos do usuário
-        if ('id' in action.payload) {
-          state.isAuthenticated = true
-          state.user = action.payload as User
-        }
+        state.registrationStage = 'email' // Indica que o email foi enviado
+        state.registrationEmail = action.payload.email // Salva o email usado
       })
-      .addCase(register.rejected, (state, action) => {
+      .addCase(startRegister.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+
+      // ========== NOVO: CASOS PARA completeRegister ==========
+      .addCase(completeRegister.pending, (state) => {
+        state.loading = true
+      })
+      .addCase(
+        completeRegister.fulfilled,
+        (state, action: PayloadAction<User>) => {
+          state.loading = false
+          state.isAuthenticated = true
+          state.user = action.payload
+          state.error = null
+          state.registrationStage = 'complete' // Indica que o registro foi completado
+        }
+      )
+      .addCase(completeRegister.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
@@ -300,7 +345,6 @@ const authSlice = createSlice({
         state.loading = false
         state.error = null
 
-        // Se a verificação trouxer dados atualizados do usuário, salva eles
         if (action.payload?.user) {
           state.isAuthenticated = true
           state.user = action.payload.user
@@ -318,7 +362,6 @@ const authSlice = createSlice({
       .addCase(resendVerificationEmail.fulfilled, (state) => {
         state.loading = false
         state.error = null
-        // Não muda dados do usuário - apenas confirma que email foi enviado
       })
       .addCase(resendVerificationEmail.rejected, (state, action) => {
         state.loading = false
@@ -332,7 +375,6 @@ const authSlice = createSlice({
       .addCase(forgotPassword.fulfilled, (state) => {
         state.loading = false
         state.error = null
-        // Apenas confirma que email de recuperação foi enviado
       })
       .addCase(forgotPassword.rejected, (state, action) => {
         state.loading = false
@@ -346,7 +388,6 @@ const authSlice = createSlice({
       .addCase(resetPassword.fulfilled, (state) => {
         state.loading = false
         state.error = null
-        // Senha foi redefinida com sucesso
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false
@@ -359,19 +400,21 @@ const authSlice = createSlice({
       })
       .addCase(logout.fulfilled, (state) => {
         state.loading = false
-        state.isAuthenticated = false // Marca como não autenticado
-        state.user = null // Remove dados do usuário
+        state.isAuthenticated = false
+        state.user = null
         state.error = null
+        // Limpa dados de registro ao fazer logout
+        state.registrationStage = null
+        state.registrationEmail = null
       })
       .addCase(logout.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
-        // Mesmo com erro, tenta limpar o estado (segurança)
         state.isAuthenticated = false
         state.user = null
       })
   }
 })
 
-export const { clearError } = authSlice.actions
+export const { clearError, resetRegistration } = authSlice.actions
 export default authSlice.reducer
