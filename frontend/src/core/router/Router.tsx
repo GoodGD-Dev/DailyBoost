@@ -8,19 +8,18 @@ import {
 
 // Pages
 import {
-  Dashboard,
   ForgotPassword,
   Login,
-  NotFound,
   Register,
   CompleteRegister,
   ResetPassword,
-  VerifyEmail,
-  VerifyRequired
-} from '@pages'
+  VerifyEmail
+} from '@features'
+
+import { Dashboard, NotFound } from '@shared'
 
 // Access Control
-import { ProtectedRoute, PublicRoute, VerifyRequiredRoute } from '@core'
+import { PrivateRoute, PublicRoute } from '@core'
 import { MainLayout } from '@shared'
 
 // Routes
@@ -46,15 +45,9 @@ const routes: RouteObject[] = [
         ]
       },
 
-      // ROTA PARA VERIFICAÇÃO DE EMAIL - Para usuários logados mas com email não verificado
-      {
-        element: <VerifyRequiredRoute />, // Componente que verifica se o email precisa ser verificado
-        children: [{ path: 'verify-required', element: <VerifyRequired /> }]
-      },
-
       // ROTAS PRIVADAS - Acessíveis apenas para usuários logados E com email verificado
       {
-        element: <ProtectedRoute />, // Componente que verifica se o usuário está logado e verificado
+        element: <PrivateRoute />, // Componente que verifica se o usuário está logado e verificado
         children: [{ path: 'dashboard', element: <Dashboard /> }] // /dashboard - página principal do app
       },
 

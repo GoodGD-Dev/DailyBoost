@@ -5,13 +5,8 @@ import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { UserPlus, CheckCircle } from 'lucide-react'
-import {
-  useAppDispatch,
-  useAppSelector,
-  completeRegister,
-  clearError
-} from '@core'
-import { formVariants } from '@features'
+import { useAppDispatch, useAppSelector } from '@core'
+import { clearError, completeRegister, formVariants } from '@features'
 import { FormButton, FormInput } from '@shared'
 
 const CompleteRegister: React.FC = () => {

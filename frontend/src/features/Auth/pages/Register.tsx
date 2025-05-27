@@ -5,14 +5,13 @@ import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { Mail } from 'lucide-react'
+import { useAppDispatch, useAppSelector } from '@core'
 import {
-  useAppDispatch,
-  useAppSelector,
-  startRegister,
   clearError,
-  resetRegistration
-} from '@core'
-import { formVariants } from '@features'
+  formVariants,
+  resetRegistration,
+  startRegister
+} from '@features'
 import { FormButton } from '@shared'
 
 const Register: React.FC = () => {

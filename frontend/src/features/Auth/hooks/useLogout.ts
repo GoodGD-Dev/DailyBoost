@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { toast } from 'react-toastify'
-import { useAppDispatch, logout } from '@core'
+import { useAppDispatch } from '@core'
+import { logout } from '@features'
 
 export const useLogout = () => {
   const [isLoading, setIsLoading] = useState(false)

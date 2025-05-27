@@ -1,8 +1,8 @@
 import React, { useState } from 'react'
 import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
-import { resendVerificationEmail, useAppSelector, useAppDispatch } from '@core'
-import { useLogout, formVariants } from '@features'
+import { useAppSelector, useAppDispatch } from '@core'
+import { useLogout, formVariants, resendVerificationEmail } from '@features'
 
 // ========== COMPONENTES REUTILIZÁVEIS ==========
 import AuthForm from '@/features/Auth/layout/AuthLayout'

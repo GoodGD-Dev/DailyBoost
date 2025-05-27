@@ -2,7 +2,7 @@ import React from 'react'
 import { Navigate, Outlet } from 'react-router-dom'
 import { useAppSelector } from '@core'
 
-const ProtectedRoute: React.FC = () => {
+const PrivateRoute: React.FC = () => {
   const { isAuthenticated, loading, user } = useAppSelector(
     (state) => state.auth
   )
@@ -24,4 +24,4 @@ const ProtectedRoute: React.FC = () => {
   return <Outlet />
 }
 
-export default ProtectedRoute
+export default PrivateRoute

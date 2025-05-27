@@ -1,8 +1,8 @@
 import React from 'react'
 import * as Yup from 'yup'
 import { toast } from 'react-toastify'
-import { useAppDispatch, useAppSelector, login, clearError } from '@core'
-import { useErrorHandlerFlexible } from '@features'
+import { useAppDispatch, useAppSelector } from '@core'
+import { clearError, login, useErrorHandlerFlexible } from '@features'
 
 // Componentes reutilizáveis
 import AuthLayout from '@/features/Auth/layout/AuthLayout'

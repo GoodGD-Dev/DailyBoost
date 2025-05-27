@@ -2,7 +2,8 @@ import React, { useState } from 'react'
 import { toast } from 'react-toastify'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { motion } from 'framer-motion'
-import { auth, googleLogin, useAppDispatch } from '@core'
+import { auth, useAppDispatch } from '@core'
+import { googleLogin } from '@features'
 
 // Interface para erros do Firebase
 interface FirebaseError extends Error {

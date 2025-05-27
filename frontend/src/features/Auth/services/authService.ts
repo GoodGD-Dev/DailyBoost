@@ -1,200 +1,114 @@
-import axios from 'axios'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { auth } from '@core'
+import { auth, apiClient } from '@core'
+import type {
+  User,
+  LoginCredentials,
+  CompleteRegisterData,
+  AuthResponse,
+  MessageResponse
+} from '../types'
 
-// ========== CONFIGURAÇÃO DA API ==========
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-
-// Configura axios para sempre enviar cookies nas requisições
-axios.defaults.withCredentials = true
-
-// ========== INTERFACES TYPESCRIPT ==========
-
-// Define a estrutura dos dados do usuário
-interface User {
-  id: string
-  name: string
-  email: string
-  isEmailVerified: boolean
-}
-
-// Dados necessários para login
-interface LoginCredentials {
-  email: string
-  password: string
-}
-
-// Dados para completar registro (nome e senha)
-interface CompleteRegisterData {
-  name: string
-  password: string
-}
-
-// ========== FUNÇÕES DO SERVIÇO DE AUTENTICAÇÃO ==========
-
-// ========== NOVO: INICIAR REGISTRO (APENAS EMAIL) ==========
-// Inicia o processo de registro enviando apenas o email
-const startRegister = async (email: string): Promise<{ message: string }> => {
-  // Envia email para endpoint de início de registro
-  const response = await axios.post(`${API_URL}/auth/start-register`, { email })
-
-  // Retorna mensagem de confirmação
-  return response.data
-}
-
-// ========== NOVO: COMPLETAR REGISTRO (NOME E SENHA) ==========
-// Completa o registro usando o token do email e os dados do usuário
-const completeRegister = async (
-  token: string,
-  userData: CompleteRegisterData
-): Promise<User> => {
-  // Envia dados para endpoint de completar registro
-  const response = await axios.post(
-    `${API_URL}/auth/complete-register/${token}`,
-    userData
-  )
-
-  // O backend retorna { success: true, user: {...}, message: "..." }
-  // e automaticamente faz login (envia cookie JWT)
-  return response.data.user
-}
-
-// ========== VERIFICAÇÃO DE EMAIL ==========
-// Verifica o email usando o token enviado por email
-const verifyEmail = async (
-  token: string
-): Promise<{ message: string; user?: User }> => {
-  // Faz GET request com o token na URL
-  const response = await axios.get(`${API_URL}/auth/verify-email/${token}`)
-
-  // Retorna resposta completa (pode incluir dados atualizados do usuário)
-  return response.data
-}
-
-// ========== REENVIO DE EMAIL DE VERIFICAÇÃO ==========
-// Reenvia o email de verificação para um endereço específico
-const resendVerificationEmail = async (
-  email: string
-): Promise<{ message: string }> => {
-  // Envia POST com o email no corpo da requisição
-  const response = await axios.post(`${API_URL}/auth/resend-verification`, {
-    email
-  })
-
-  // Retorna apenas a mensagem de confirmação
-  return response.data
-}
-
-// ========== LOGIN COM EMAIL/SENHA ==========
-// Autentica usuário com credenciais tradicionais
-const login = async (credentials: LoginCredentials): Promise<User> => {
-  // Envia credenciais para endpoint de login
-  const response = await axios.post(`${API_URL}/auth/login`, credentials)
-
-  // Retorna dados do usuário autenticado
-  return response.data.user
-}
-
-// ========== LOGIN COM GOOGLE (BACKEND) ==========
-// Envia token do Google para o backend validar
-const googleLogin = async (idToken: string): Promise<User> => {
-  // Envia token JWT do Google para o backend
-  const response = await axios.post(`${API_URL}/auth/google`, { idToken })
-
-  // Backend valida o token com Google e retorna dados do usuário
-  return response.data.user
-}
-
-// ========== INÍCIO DO LOGIN COM GOOGLE (FRONTEND) ==========
-// Abre popup do Google e obtém o token JWT
-const initiateGoogleLogin = async (): Promise<string> => {
-  // Cria provedor de autenticação do Google
-  const provider = new GoogleAuthProvider()
-
-  // Abre popup do Google para login
-  const result = await signInWithPopup(auth, provider)
-
-  // Extrai dados do usuário do resultado
-  const user = result.user
-
-  // Validação de segurança
-  if (!user) {
-    throw new Error('Não foi possível autenticar com o Google')
+class AuthService {
+  // ========== INICIAR REGISTRO (APENAS EMAIL) ==========
+  async startRegister(email: string): Promise<MessageResponse> {
+    const response = await apiClient.post('/auth/start-register', { email })
+    return response.data
   }
 
-  // Obtém o token JWT do usuário autenticado
-  const idToken = await user.getIdToken()
-  return idToken
-}
-
-// ========== ESQUECI A SENHA ==========
-// Envia email de recuperação de senha
-const forgotPassword = async (email: string): Promise<{ message: string }> => {
-  // Envia email para endpoint de recuperação
-  const response = await axios.post(`${API_URL}/auth/forgot-password`, {
-    email
-  })
-
-  // Retorna confirmação de que email foi enviado
-  return response.data
-}
-
-// ========== REDEFINIR SENHA ==========
-// Redefine a senha usando token do email de recuperação
-const resetPassword = async (
-  token: string,
-  password: string
-): Promise<{ message: string }> => {
-  // Envia nova senha junto com token de validação
-  const response = await axios.put(`${API_URL}/auth/reset-password/${token}`, {
-    password
-  })
-
-  // Retorna confirmação de que senha foi alterada
-  return response.data
-}
-
-// ========== OBTER USUÁRIO ATUAL ==========
-// Verifica se há um usuário logado (valida token/cookie)
-const getCurrentUser = async (): Promise<User> => {
-  // Faz requisição autenticada para obter dados do usuário
-  const response = await axios.get(`${API_URL}/auth/me`)
-
-  // Retorna dados do usuário atual
-  return response.data.user
-}
-
-// ========== LOGOUT ==========
-// Desloga o usuário tanto no Firebase quanto no backend
-const logout = async (): Promise<{ message: string }> => {
-  // ========== LOGOUT DO FIREBASE ==========
-  // Se há usuário logado no Firebase, faz logout dele também
-  if (auth.currentUser) {
-    await auth.signOut()
+  // ========== COMPLETAR REGISTRO (NOME E SENHA) ==========
+  async completeRegister(
+    token: string,
+    userData: CompleteRegisterData
+  ): Promise<User> {
+    const response = await apiClient.post<AuthResponse>(
+      `/auth/complete-register/${token}`,
+      userData
+    )
+    return response.data.user
   }
 
-  // ========== LOGOUT DO BACKEND ==========
-  // Informa ao backend para invalidar sessão/cookie
-  const response = await axios.get(`${API_URL}/auth/logout`)
+  // ========== VERIFICAÇÃO DE EMAIL ==========
+  async verifyEmail(token: string): Promise<{ message: string; user?: User }> {
+    const response = await apiClient.get(`/auth/verify-email/${token}`)
+    return response.data
+  }
 
-  // Retorna confirmação de logout
-  return response.data
+  // ========== REENVIO DE EMAIL DE VERIFICAÇÃO ==========
+  async resendVerificationEmail(email: string): Promise<MessageResponse> {
+    const response = await apiClient.post('/auth/resend-verification', {
+      email
+    })
+    return response.data
+  }
+
+  // ========== LOGIN COM EMAIL/SENHA ==========
+  async login(credentials: LoginCredentials): Promise<User> {
+    const response = await apiClient.post<AuthResponse>(
+      '/auth/login',
+      credentials
+    )
+    return response.data.user
+  }
+
+  // ========== LOGIN COM GOOGLE (BACKEND) ==========
+  async googleLogin(idToken: string): Promise<User> {
+    const response = await apiClient.post<AuthResponse>('/auth/google', {
+      idToken
+    })
+    return response.data.user
+  }
+
+  // ========== INÍCIO DO LOGIN COM GOOGLE (FRONTEND) ==========
+  async initiateGoogleLogin(): Promise<string> {
+    const provider = new GoogleAuthProvider()
+    const result = await signInWithPopup(auth, provider)
+    const user = result.user
+
+    if (!user) {
+      throw new Error('Não foi possível autenticar com o Google')
+    }
+
+    const idToken = await user.getIdToken()
+    return idToken
+  }
+
+  // ========== ESQUECI A SENHA ==========
+  async forgotPassword(email: string): Promise<MessageResponse> {
+    const response = await apiClient.post('/auth/forgot-password', { email })
+    return response.data
+  }
+
+  // ========== REDEFINIR SENHA ==========
+  async resetPassword(
+    token: string,
+    password: string
+  ): Promise<MessageResponse> {
+    const response = await apiClient.put(`/auth/reset-password/${token}`, {
+      password
+    })
+    return response.data
+  }
+
+  // ========== OBTER USUÁRIO ATUAL ==========
+  async getCurrentUser(): Promise<User> {
+    const response = await apiClient.get<AuthResponse>('/auth/me')
+    return response.data.user
+  }
+
+  // ========== LOGOUT ==========
+  async logout(): Promise<MessageResponse> {
+    // Logout do Firebase se necessário
+    if (auth.currentUser) {
+      await auth.signOut()
+    }
+
+    // Logout do backend
+    const response = await apiClient.get('/auth/logout')
+    return response.data
+  }
 }
 
-// ========== OBJETO DE SERVIÇO ==========
-// Agrupa todas as funções em um objeto para exportação
-const authService = {
-  startRegister, // NOVO
-  completeRegister, // NOVO
-  verifyEmail,
-  resendVerificationEmail,
-  login,
-  googleLogin,
-  initiateGoogleLogin,
-  forgotPassword,
-  resetPassword,
-  getCurrentUser,
-  logout
-}
-
+const authService = new AuthService()
 export default authService
+
+export { authService }

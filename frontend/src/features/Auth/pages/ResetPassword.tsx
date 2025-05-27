@@ -4,13 +4,8 @@ import { useFormik } from 'formik'
 import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
-import {
-  useAppDispatch,
-  useAppSelector,
-  resetPassword,
-  clearError
-} from '@core'
-import { formVariants } from '@features'
+import { useAppDispatch, useAppSelector } from '@core'
+import { clearError, formVariants, resetPassword } from '@features'
 
 // ========== COMPONENTES REUTILIZÁVEIS ==========
 import AuthForm from '@/features/Auth/layout/AuthLayout'
