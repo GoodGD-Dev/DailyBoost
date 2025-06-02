@@ -1,7 +1,7 @@
 const crypto = require('crypto');
 const User = require('./auth.model');
 const { sendEmail } = require('../../utils/email.utils');
-const firebase = require('../../config/firebase');
+const firebase = require('./config/firebase');
 
 /**
  * Limpa registros expirados automaticamente

@@ -3,8 +3,8 @@ import { Link } from 'react-router-dom'
 import { useFormik, FormikConfig } from 'formik'
 import { motion } from 'framer-motion'
 import { Schema } from 'yup'
-import { FormButton, FormInput } from '@shared'
 import { GoogleButton, formVariants } from '@features'
+import { FormButton, FormInput } from '@shared'
 
 // ========== TIPOS ==========
 interface FormField {

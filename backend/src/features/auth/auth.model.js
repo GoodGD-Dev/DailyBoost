@@ -1,10 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-/**
- * Esquema de usuário atualizado para suportar registro em duas etapas
- * Primeiro solicita email, depois completa com nome e senha
- */
 const UserSchema = new mongoose.Schema({
   // Nome do usuário (opcional até completar registro)
   name: {
@@ -14,7 +10,6 @@ const UserSchema = new mongoose.Schema({
       return !this.googleId && this.password;
     }
   },
-
   // Email do usuário
   email: {
     type: String,
@@ -22,7 +17,6 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     lowercase: true
   },
-
   // Senha do usuário (opcional até completar registro)
   password: {
     type: String,
@@ -33,11 +27,27 @@ const UserSchema = new mongoose.Schema({
     minlength: 6,
     select: false
   },
-
   // ID do Google para autenticação OAuth
   googleId: {
     type: String
   },
+
+  // ============ CAMPOS DE ADMINISTRAÇÃO ============
+
+  // Flag para indicar se o usuário é administrador
+  isAdmin: {
+    type: Boolean,
+    default: false
+  },
+
+  // Sistema de roles (opcional - use se preferir roles ao invés de booleano)
+  role: {
+    type: String,
+    enum: ['user', 'admin', 'superadmin'],
+    default: 'user'
+  },
+
+  // ============ CAMPOS EXISTENTES ============
 
   // Flag para controlar se o email foi verificado
   // Como não precisamos mais verificar email, sempre será true
@@ -45,19 +55,16 @@ const UserSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
-
   // Token para continuação do registro (substitui emailVerificationToken)
   registrationToken: String,
-
   // Data de expiração do token de registro
   registrationTokenExpires: Date,
-
+  // Data de quando o registro foi completado
+  registrationCompletedAt: Date,
   // Token para redefinição de senha
   resetPasswordToken: String,
-
   // Data de expiração do token de redefinição de senha
   resetPasswordExpires: Date,
-
   // Data de criação da conta
   createdAt: {
     type: Date,
@@ -91,6 +98,22 @@ UserSchema.methods.matchPassword = async function (enteredPassword) {
     return false;
   }
   return await bcrypt.compare(enteredPassword, this.password);
+};
+
+/**
+ * Método para verificar se o usuário é administrador
+ * @returns {boolean} - Verdadeiro se for admin
+ */
+UserSchema.methods.isAdministrator = function () {
+  return this.isAdmin || this.role === 'admin' || this.role === 'superadmin';
+};
+
+/**
+ * Método para verificar se o usuário é super administrador
+ * @returns {boolean} - Verdadeiro se for super admin
+ */
+UserSchema.methods.isSuperAdmin = function () {
+  return this.role === 'superadmin';
 };
 
 module.exports = mongoose.model('User', UserSchema);

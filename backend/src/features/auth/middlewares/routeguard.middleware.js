@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const User = require('./auth.model');
+const User = require('../auth.model');
 
 /**
  * Middleware de proteção de rotas

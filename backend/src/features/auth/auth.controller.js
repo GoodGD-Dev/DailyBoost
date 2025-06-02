@@ -1,5 +1,6 @@
 const authService = require('./auth.service');
-const { sendTokenResponse } = require('../../utils/jwt.utils');
+const { sendTokenResponse } = require('./utils/jwt.utils')
+const { AuthScheduler } = require('./jobs');
 
 /**
  * @desc Iniciar processo de registro - solicita apenas email
@@ -9,15 +10,12 @@ const { sendTokenResponse } = require('../../utils/jwt.utils');
 exports.startRegister = async (req, res, next) => {
   try {
     const { email } = req.body;
-
     if (!email) {
       const error = new Error('Por favor, forneça um email');
       error.statusCode = 400;
       throw error;
     }
-
     const result = await authService.startUserRegistration(email);
-
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -33,15 +31,12 @@ exports.completeRegister = async (req, res, next) => {
   try {
     const { token } = req.params;
     const { name, password } = req.body;
-
     if (!name || !password) {
       const error = new Error('Por favor, forneça nome e senha');
       error.statusCode = 400;
       throw error;
     }
-
     const user = await authService.completeUserRegistration(token, { name, password });
-
     // Envia token JWT para login automático após completar o registro
     sendTokenResponse(user, 201, res);
   } catch (error) {
@@ -136,9 +131,93 @@ exports.logout = (req, res) => {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
-
   res.status(200).json({
     success: true,
     message: 'Logout realizado com sucesso'
   });
+};
+
+// ============ ROTAS ADMINISTRATIVAS ============
+// IMPORTANTE: Em produção, adicione middleware de autenticação de admin
+
+/**
+ * @desc Executar limpeza manual de registros expirados
+ * @route POST /api/auth/admin/cleanup
+ * @access Admin
+ */
+exports.adminCleanup = async (req, res, next) => {
+  try {
+    const result = await AuthScheduler.runManualCleanup();
+    res.status(200).json({
+      success: true,
+      message: 'Limpeza de Auth executada com sucesso',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * @desc Verificar status do scheduler de Auth
+ * @route GET /api/auth/admin/scheduler/status
+ * @access Admin
+ */
+exports.adminSchedulerStatus = (req, res) => {
+  try {
+    const status = AuthScheduler.getStatus();
+    res.status(200).json({
+      success: true,
+      scheduler: status,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao obter status do scheduler',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc Parar scheduler de Auth
+ * @route POST /api/auth/admin/scheduler/stop
+ * @access Admin
+ */
+exports.adminSchedulerStop = (req, res) => {
+  try {
+    AuthScheduler.stop();
+    res.status(200).json({
+      success: true,
+      message: 'Scheduler de Auth parado com sucesso'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao parar scheduler de Auth',
+      error: error.message
+    });
+  }
+};
+
+/**
+ * @desc Reiniciar scheduler de Auth
+ * @route POST /api/auth/admin/scheduler/restart
+ * @access Admin
+ */
+exports.adminSchedulerRestart = (req, res) => {
+  try {
+    AuthScheduler.restart();
+    res.status(200).json({
+      success: true,
+      message: 'Scheduler de Auth reiniciado com sucesso'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Erro ao reiniciar scheduler de Auth',
+      error: error.message
+    });
+  }
 };

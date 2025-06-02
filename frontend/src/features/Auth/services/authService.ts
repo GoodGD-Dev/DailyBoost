@@ -1,5 +1,6 @@
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { auth, apiClient } from '@core'
+import { apiClient } from '@core'
+import { auth } from '@features'
 import type {
   User,
   LoginCredentials,

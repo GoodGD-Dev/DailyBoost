@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('./auth.controller');
-const { protect } = require('./auth.middleware');
+const { protect, adminOnly } = require('./middlewares');
 
 /**
  * ROTAS PÚBLICAS
@@ -33,7 +33,7 @@ router.post('/forgot-password', authController.forgotPassword);
 router.put('/reset-password/:token', authController.resetPassword);
 
 /**
- * ROTAS PROTEGIDAS
+ * ROTAS PRIVADAS
  * Estas rotas requerem autenticação
  * O middleware 'protect' é executado antes do controlador
  */
@@ -45,5 +45,27 @@ router.get('/me', protect, authController.getMe);
 // Rota para realizar logout
 // GET /api/auth/logout
 router.get('/logout', protect, authController.logout);
+
+/**
+ * ROTAS ADMINISTRATIVAS
+ * Estas rotas são para gerenciamento interno do sistema
+ * Requerem autenticação + permissão de administrador
+ */
+
+// Rota para executar limpeza manual de registros expirados
+// POST /api/auth/admin/cleanup
+router.post('/admin/cleanup', protect, adminOnly, authController.adminCleanup);
+
+// Rota para verificar status do scheduler de Auth
+// GET /api/auth/admin/scheduler/status
+router.get('/admin/scheduler/status', protect, adminOnly, authController.adminSchedulerStatus);
+
+// Rota para parar o scheduler de Auth
+// POST /api/auth/admin/scheduler/stop
+router.post('/admin/scheduler/stop', protect, adminOnly, authController.adminSchedulerStop);
+
+// Rota para reiniciar o scheduler de Auth
+// POST /api/auth/admin/scheduler/restart
+router.post('/admin/scheduler/restart', protect, adminOnly, authController.adminSchedulerRestart);
 
 module.exports = router;
