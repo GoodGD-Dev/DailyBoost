@@ -1,13 +1,7 @@
 import React from 'react'
+import { StatusMessageProps } from '@shared'
 
-interface StatusMessageProps {
-  type: 'success' | 'error' | 'warning' | 'info'
-  title?: string
-  message: string
-  icon?: boolean
-  className?: string
-}
-
+// ========== COMPONENTE PRINCIPAL ==========
 const StatusMessage: React.FC<StatusMessageProps> = ({
   type,
   title,

@@ -1,34 +1,63 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const flash = require('connect-flash');
 const { errorHandler } = require('./middlewares');
 
 // Rotas
 const authRoutes = require('./features/auth/auth.routes');
+const adminAuthRoutes = require('./features/admin/auth.routes');
+const adminRoutes = require('./features/admin/admin.routes');
 
 // Inicializar o app Express
 const app = express();
 
+// Configurar view engine para o painel admin
+app.set('view engine', 'ejs');
+app.set('views', './src/features/admin/views');
+
 // Configurar middlewares globais
-// Estes middlewares são aplicados a todas as rotas
-
-// Middleware para analisar o corpo das requisições em formato JSON
 app.use(express.json());
-
-// Middleware para analisar cookies nas requisições
 app.use(cookieParser());
 
-// Configura o CORS (Cross-Origin Resource Sharing) para permitir requisições do frontend
-app.use(cors({
-  origin: process.env.FRONTEND_URL,    // Origem permitida (URL do frontend)
-  credentials: true,                   // Permite o envio de cookies em requisições cross-origin
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Métodos HTTP permitidos
-  allowedHeaders: ['Content-Type', 'Authorization'] // Cabeçalhos permitidos
+// Configurar sessões para o painel admin
+app.use(session({
+  secret: process.env.ADMIN_SESSION_SECRET || 'admin-supersecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production', // HTTPS em produção
+    maxAge: 24 * 60 * 60 * 1000 // 24 horas
+  }
 }));
 
-// Configurar rotas da API
-// Define o prefixo '/api/auth' para todas as rotas de autenticação
+// Flash messages para o admin
+app.use(flash());
+
+// CORS para API
+app.use('/api', cors({
+  origin: process.env.FRONTEND_URL,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
+// Rotas da API
 app.use('/api/auth', authRoutes);
+
+// Rotas do painel admin
+app.use('/admin', adminAuthRoutes);  // Login/logout do admin
+app.use('/admin', adminRoutes);      // Dashboard e funcionalidades
+
+// Redirecionar /admin para /admin/login ou /admin/dashboard
+app.get('/admin', (req, res) => {
+  if (req.session && req.session.adminUser) {
+    res.redirect('/admin/dashboard');
+  } else {
+    res.redirect('/admin/login');
+  }
+});
 
 // Rota para verificar se a API está rodando (health check)
 app.get('/api/health', (req, res) => {

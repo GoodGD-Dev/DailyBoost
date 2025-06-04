@@ -138,7 +138,6 @@ exports.logout = (req, res) => {
 };
 
 // ============ ROTAS ADMINISTRATIVAS ============
-// IMPORTANTE: Em produção, adicione middleware de autenticação de admin
 
 /**
  * @desc Executar limpeza manual de registros expirados

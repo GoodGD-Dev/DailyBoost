@@ -49,12 +49,6 @@ const UserSchema = new mongoose.Schema({
 
   // ============ CAMPOS EXISTENTES ============
 
-  // Flag para controlar se o email foi verificado
-  // Como não precisamos mais verificar email, sempre será true
-  isEmailVerified: {
-    type: Boolean,
-    default: true
-  },
   // Token para continuação do registro (substitui emailVerificationToken)
   registrationToken: String,
   // Data de expiração do token de registro

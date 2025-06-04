@@ -1,11 +1,7 @@
 import React from 'react'
+import { LoadingSpinnerProps } from '@shared'
 
-interface LoadingSpinnerProps {
-  message?: string
-  size?: 'sm' | 'md' | 'lg'
-  className?: string
-}
-
+// ========== COMPONENTE PRINCIPAL ==========
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message = 'Carregando...',
   size = 'md',

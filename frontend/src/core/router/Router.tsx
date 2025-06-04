@@ -13,7 +13,7 @@ import {
   Register,
   CompleteRegister,
   ResetPassword,
-  VerifyEmail
+  RegisterSuccess
 } from '@features'
 
 import { Dashboard, NotFound } from '@shared'
@@ -22,14 +22,14 @@ import { Dashboard, NotFound } from '@shared'
 import { PrivateRoute, PublicRoute } from '@core'
 import { MainLayout } from '@shared'
 
-// Routes
+// ========== CONFIGURAÇÃO DAS ROTAS ==========
 const routes: RouteObject[] = [
   {
     // Rota raiz que engloba toda a aplicação
     path: '/',
     element: <MainLayout />, // Layout base que será mostrado em todas as páginas
     children: [
-      // Public Routes
+      // ========== ROTAS PÚBLICAS ==========
       {
         element: <PublicRoute />, // Componente que verifica se o usuário não está logado
         children: [
@@ -38,26 +38,30 @@ const routes: RouteObject[] = [
           // Páginas de autenticação
           { path: 'login', element: <Login /> },
           { path: 'register', element: <Register /> },
-          { path: 'complete-register/:token', element: <CompleteRegister /> }, // NOVA ROTA
+          { path: 'complete-register/:token', element: <CompleteRegister /> },
           { path: 'forgot-password', element: <ForgotPassword /> },
           { path: 'reset-password/:token', element: <ResetPassword /> },
-          { path: 'verify-email/:token', element: <VerifyEmail /> }
+          { path: 'register-success', element: <RegisterSuccess /> }
         ]
       },
 
-      // ROTAS PRIVADAS - Acessíveis apenas para usuários logados E com email verificado
+      // ========== ROTAS PRIVADAS ==========
+      // Acessíveis apenas para usuários logados E com email verificado
       {
         element: <PrivateRoute />, // Componente que verifica se o usuário está logado e verificado
-        children: [{ path: 'dashboard', element: <Dashboard /> }] // /dashboard - página principal do app
+        children: [
+          { path: 'dashboard', element: <Dashboard /> } // /dashboard - página principal do app
+        ]
       },
 
-      // ROTA 404 - Captura qualquer URL que não foi definida acima
+      // ========== ROTA 404 ==========
+      // Captura qualquer URL que não foi definida acima
       { path: '*', element: <NotFound /> } // Qualquer rota não encontrada mostra página 404
     ]
   }
 ]
 
-//RouterApp
+// ========== COMPONENTE ROUTER ==========
 const Router: React.FC = () => {
   const router = createBrowserRouter(routes)
   return <RouterProvider router={router} />

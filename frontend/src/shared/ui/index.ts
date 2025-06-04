@@ -1,4 +1,3 @@
-export { default as AuthForm } from '../../features/Auth/layout/AuthLayout'
 export { default as FormButton } from './FormButton'
 export { default as FormInput } from './FormInput'
 export { default as LoadingSpinner } from './LoadingSpinner'
