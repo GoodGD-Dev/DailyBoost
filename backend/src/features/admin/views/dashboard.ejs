@@ -1,0 +1,246 @@
+<%- include('layout', { body: `
+<!-- Page Header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-house-door me-2"></i>Dashboard
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <form action="/admin/cleanup" method="POST" class="d-inline">
+                <button type="submit" class="btn btn-outline-danger btn-sm" 
+                        onclick="return confirm('Executar limpeza de registros expirados?')">
+                    <i class="bi bi-trash me-1"></i>Executar Limpeza
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            Total de Usuários
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <%= stats.totalUsers %>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-people text-primary" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            Administradores
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <%= stats.adminUsers %>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-shield-check text-success" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            Registros Completos
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <%= stats.completedRegistrations %>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-check-circle text-info" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            Registros Pendentes
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            <%= stats.pendingRegistrations %>
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="bi bi-clock text-warning" style="font-size: 2rem;"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Users and Quick Actions -->
+<div class="row">
+    <!-- Recent Users -->
+    <div class="col-xl-8 col-lg-7">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-person-plus me-2"></i>Usuários Recentes
+                </h6>
+                <a href="/admin/users" class="btn btn-primary btn-sm">
+                    Ver Todos <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="card-body">
+                <% if (stats.recentUsers && stats.recentUsers.length > 0) { %>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Nome</th>
+                                    <th>Email</th>
+                                    <th>Tipo</th>
+                                    <th>Cadastro</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <% stats.recentUsers.forEach(function(user) { %>
+                                    <tr>
+                                        <td>
+                                            <strong><%= user.name || 'Sem nome' %></strong>
+                                        </td>
+                                        <td>
+                                            <span class="text-muted"><%= user.email %></span>
+                                        </td>
+                                        <td>
+                                            <% if (user.isAdmin) { %>
+                                                <span class="badge bg-success">
+                                                    <i class="bi bi-shield-check me-1"></i>Admin
+                                                </span>
+                                            <% } else { %>
+                                                <span class="badge bg-secondary">
+                                                    <i class="bi bi-person me-1"></i>Usuário
+                                                </span>
+                                            <% } %>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <%= new Date(user.createdAt).toLocaleDateString('pt-BR') %>
+                                            </small>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                            </tbody>
+                        </table>
+                    </div>
+                <% } else { %>
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2">Nenhum usuário encontrado</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="col-xl-4 col-lg-5">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="bi bi-lightning me-2"></i>Ações Rápidas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <a href="/admin/users" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-people me-2 text-primary"></i>
+                                <strong>Gerenciar Usuários</strong>
+                            </div>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                        </div>
+                        <p class="mb-1 text-muted small">Visualizar, editar e gerenciar usuários</p>
+                    </a>
+
+                    <a href="/admin/system" class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <div>
+                                <i class="bi bi-cpu me-2 text-info"></i>
+                                <strong>Status do Sistema</strong>
+                            </div>
+                            <i class="bi bi-arrow-right text-muted"></i>
+                        </div>
+                        <p class="mb-1 text-muted small">Monitorar performance e schedulers</p>
+                    </a>
+
+                    <div class="list-group-item">
+                        <form action="/admin/cleanup" method="POST">
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-trash me-2 text-warning"></i>
+                                    <strong>Limpeza de Registros</strong>
+                                </div>
+                                <button type="submit" class="btn btn-outline-warning btn-sm"
+                                        onclick="return confirm('Executar limpeza?')">
+                                    Executar
+                                </button>
+                            </div>
+                            <p class="mb-1 text-muted small">Remove registros expirados automaticamente</p>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .border-left-primary {
+        border-left: 0.25rem solid #007bff !important;
+    }
+    .border-left-success {
+        border-left: 0.25rem solid #28a745 !important;
+    }
+    .border-left-info {
+        border-left: 0.25rem solid #17a2b8 !important;
+    }
+    .border-left-warning {
+        border-left: 0.25rem solid #ffc107 !important;
+    }
+    
+    .text-xs {
+        font-size: 0.75rem;
+    }
+    
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .card:hover {
+        transform: translateY(-2px);
+    }
+</style>
+` }) %>

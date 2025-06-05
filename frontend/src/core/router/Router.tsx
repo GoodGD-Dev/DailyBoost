@@ -12,14 +12,15 @@ import {
   Login,
   Register,
   CompleteRegister,
-  ResetPassword,
-  RegisterSuccess
-} from '@features'
+  ResetPassword
+} from '@auth'
 
-import { Dashboard, NotFound } from '@shared'
+import { Dashboard, NotFound } from '@pages'
 
 // Access Control
-import { PrivateRoute, PublicRoute } from '@core'
+import { PrivateRoute, PublicRoute } from '@auth'
+
+// Layout
 import { MainLayout } from '@shared'
 
 // ========== CONFIGURAÇÃO DAS ROTAS ==========
@@ -40,8 +41,7 @@ const routes: RouteObject[] = [
           { path: 'register', element: <Register /> },
           { path: 'complete-register/:token', element: <CompleteRegister /> },
           { path: 'forgot-password', element: <ForgotPassword /> },
-          { path: 'reset-password/:token', element: <ResetPassword /> },
-          { path: 'register-success', element: <RegisterSuccess /> }
+          { path: 'reset-password/:token', element: <ResetPassword /> }
         ]
       },
 

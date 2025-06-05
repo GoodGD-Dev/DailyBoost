@@ -1,0 +1,247 @@
+<%- include('layout', { body: `
+<!-- Page Header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-cpu me-2"></i>Status do Sistema
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button onclick="location.reload()" class="btn btn-outline-primary">
+            <i class="bi bi-arrow-clockwise me-1"></i>Atualizar
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- System Info -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-info-circle me-2"></i>Informações do Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Node.js Version:</strong></td>
+                        <td><code><%= systemStats.nodeVersion %></code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Environment:</strong></td>
+                        <td>
+                            <span class="badge bg-<%= systemStats.environment === 'production' ? 'success' : 'warning' %>">
+                                <%= systemStats.environment %>
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Uptime:</strong></td>
+                        <td>
+                            <% 
+                                const uptimeHours = Math.floor(systemStats.uptime / 3600);
+                                const uptimeMinutes = Math.floor((systemStats.uptime % 3600) / 60);
+                                const uptimeSeconds = Math.floor(systemStats.uptime % 60);
+                            %>
+                            <%= uptimeHours %>h <%= uptimeMinutes %>m <%= uptimeSeconds %>s
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Timestamp:</strong></td>
+                        <td>
+                            <%= new Date().toLocaleDateString('pt-BR') %> às 
+                            <%= new Date().toLocaleTimeString('pt-BR') %>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Memory Usage -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-memory me-2"></i>Uso de Memória
+                </h6>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>RSS:</strong></td>
+                        <td><%= (systemStats.memoryUsage.rss / 1024 / 1024).toFixed(2) %> MB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heap Total:</strong></td>
+                        <td><%= (systemStats.memoryUsage.heapTotal / 1024 / 1024).toFixed(2) %> MB</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Heap Used:</strong></td>
+                        <td>
+                            <%= (systemStats.memoryUsage.heapUsed / 1024 / 1024).toFixed(2) %> MB
+                            <div class="progress mt-1" style="height: 4px;">
+                                <div class="progress-bar" role="progressbar" 
+                                     style="width: <%= (systemStats.memoryUsage.heapUsed / systemStats.memoryUsage.heapTotal * 100).toFixed(1) %>%">
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>External:</strong></td>
+                        <td><%= (systemStats.memoryUsage.external / 1024 / 1024).toFixed(2) %> MB</td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Scheduler Status -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="mb-0">
+                    <i class="bi bi-clock me-2"></i>Status dos Schedulers
+                </h6>
+                <span class="badge bg-<%= systemStats.schedulerStatus.totalFeatures > 0 ? 'success' : 'danger' %>">
+                    <%= systemStats.schedulerStatus.totalFeatures %> feature(s) ativo(s)
+                </span>
+            </div>
+            <div class="card-body">
+                <% if (systemStats.schedulerStatus.features && Object.keys(systemStats.schedulerStatus.features).length > 0) { %>
+                    <div class="row">
+                        <% Object.entries(systemStats.schedulerStatus.features).forEach(function([featureName, featureStatus]) { %>
+                            <div class="col-md-6 mb-3">
+                                <div class="card border-start border-primary border-4">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0 text-capitalize">
+                                                <i class="bi bi-gear me-2"></i><%= featureName %>
+                                            </h6>
+                                            <span class="badge bg-<%= featureStatus.activeJobs > 0 ? 'success' : 'danger' %>">
+                                                <%= featureStatus.activeJobs > 0 ? 'Ativo' : 'Inativo' %>
+                                            </span>
+                                        </div>
+                                        
+                                        <% if (featureStatus.error) { %>
+                                            <div class="alert alert-danger alert-sm">
+                                                <i class="bi bi-exclamation-triangle me-1"></i>
+                                                <%= featureStatus.error %>
+                                            </div>
+                                        <% } else { %>
+                                            <div class="row text-center">
+                                                <div class="col-6">
+                                                    <div class="border-end">
+                                                        <strong class="text-primary d-block"><%= featureStatus.totalJobs || 0 %></strong>
+                                                        <small class="text-muted">Total Jobs</small>
+                                                    </div>
+                                                </div>
+                                                <div class="col-6">
+                                                    <strong class="text-success d-block"><%= featureStatus.activeJobs || 0 %></strong>
+                                                    <small class="text-muted">Jobs Ativos</small>
+                                                </div>
+                                            </div>
+                                            
+                                            <% if (featureStatus.jobs && featureStatus.jobs.length > 0) { %>
+                                                <div class="mt-2">
+                                                    <small class="text-muted">Jobs:</small>
+                                                    <% featureStatus.jobs.forEach(function(job) { %>
+                                                        <span class="badge bg-light text-dark me-1"><%= job %></span>
+                                                    <% }); %>
+                                                </div>
+                                            <% } %>
+                                        <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                        <% }); %>
+                    </div>
+                <% } else { %>
+                    <div class="text-center py-4">
+                        <i class="bi bi-clock-history text-muted" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3 text-muted">Nenhum Scheduler Ativo</h5>
+                        <p class="text-muted">Os schedulers não estão rodando ou não foram configurados.</p>
+                    </div>
+                <% } %>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-lightning me-2"></i>Ações do Sistema
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3 mb-2">
+                        <form action="/admin/cleanup" method="POST" class="d-grid">
+                            <button type="submit" class="btn btn-outline-warning"
+                                    onclick="return confirm('Executar limpeza de registros expirados?')">
+                                <i class="bi bi-trash me-2"></i>
+                                Executar Limpeza
+                            </button>
+                        </form>
+                    </div>
+                    
+                    <div class="col-md-3 mb-2">
+                        <button onclick="location.reload()" class="btn btn-outline-primary w-100">
+                            <i class="bi bi-arrow-clockwise me-2"></i>
+                            Recarregar Status
+                        </button>
+                    </div>
+                    
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/users" class="btn btn-outline-info w-100">
+                            <i class="bi bi-people me-2"></i>
+                            Ver Usuários
+                        </a>
+                    </div>
+                    
+                    <div class="col-md-3 mb-2">
+                        <a href="/admin/dashboard" class="btn btn-outline-success w-100">
+                            <i class="bi bi-house me-2"></i>
+                            Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-borderless td {
+        border: none;
+        padding: 0.5rem 0;
+    }
+    
+    .border-start {
+        border-left: 4px solid !important;
+    }
+    
+    .border-end {
+        border-right: 1px solid #dee2e6 !important;
+    }
+    
+    .alert-sm {
+        padding: 0.5rem;
+        margin-bottom: 0.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .progress {
+        height: 4px;
+    }
+    
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+</style>
+` }) %>
