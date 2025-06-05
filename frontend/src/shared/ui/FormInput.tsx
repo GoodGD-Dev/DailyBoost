@@ -1,19 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { pageAnimations } from '@features'
-import { FieldInputProps } from 'formik'
-
-// ========== INTERFACE SIMPLIFICADA ==========
-export interface FormInputProps {
-  id: string
-  label: string
-  type?: string
-  error?: string
-  touched?: boolean
-  fieldProps: FieldInputProps<string>
-  className?: string
-  placeholder?: string
-}
+import { FormInputProps, pageAnimations } from '@shared'
 
 // ========== COMPONENTE PRINCIPAL ==========
 const FormInput: React.FC<FormInputProps> = ({
@@ -28,26 +15,23 @@ const FormInput: React.FC<FormInputProps> = ({
 }) => {
   return (
     <motion.div className={className} variants={pageAnimations.item}>
-      <label htmlFor={id} className="block text-gray-700 mb-2 font-medium">
+      <label htmlFor={id} className="theme-label">
         {label}
       </label>
+
       <input
         id={id}
         type={type}
         placeholder={placeholder}
         {...fieldProps}
         className={`
-          w-full px-3 py-2 border rounded-md shadow-sm transition-colors duration-200
-          focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500
-          ${
-            touched && error
-              ? 'border-red-300 bg-red-50'
-              : 'border-gray-300 bg-white hover:border-gray-400'
-          }
-        `}
+          theme-input
+          ${touched && error ? 'theme-input-error' : ''}
+        `.trim()}
       />
+
       {touched && error && (
-        <div className="text-red-600 text-sm mt-1 flex items-center">
+        <div className="theme-error-message">
           <svg
             className="w-4 h-4 mr-1 flex-shrink-0"
             fill="currentColor"

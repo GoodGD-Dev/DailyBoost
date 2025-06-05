@@ -6,13 +6,8 @@ import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { UserPlus, CheckCircle } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@core'
-import {
-  AuthLayout,
-  clearError,
-  completeRegister,
-  pageAnimations
-} from '@features'
-import { FormButton, FormInput } from '@shared'
+import { clearError, completeRegister, AuthLayout } from '@auth'
+import { Btns, FormInput, pageAnimations } from '@/shared'
 
 const CompleteRegister: React.FC = () => {
   // ========== HOOKS ==========
@@ -102,7 +97,7 @@ const CompleteRegister: React.FC = () => {
       {isSuccess ? (
         // ========== ESTADO: REGISTRO COMPLETADO ==========
         <motion.div variants={pageAnimations.item}>
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="theme-alert-success">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-6 h-6 mr-2" />
               <span className="font-medium">Registro completado!</span>
@@ -116,7 +111,7 @@ const CompleteRegister: React.FC = () => {
           <div className="text-center">
             <button
               onClick={() => navigate('/dashboard')}
-              className="text-blue-600 hover:text-blue-700 font-medium"
+              className="theme-link font-medium"
             >
               Ir para o dashboard agora
             </button>
@@ -127,7 +122,7 @@ const CompleteRegister: React.FC = () => {
         <motion.div variants={pageAnimations.item}>
           <form onSubmit={formik.handleSubmit}>
             <motion.p
-              className="text-gray-600 mb-6 text-center"
+              className="theme-text-gray-600 mb-6 text-center"
               variants={pageAnimations.item}
             >
               Quase lá! Agora complete seu registro com seu nome e senha.
@@ -162,7 +157,7 @@ const CompleteRegister: React.FC = () => {
             />
 
             <motion.div className="mb-6" variants={pageAnimations.item}>
-              <FormButton
+              <Btns
                 text="Completar Registro"
                 loading={loading}
                 disabled={!(formik.isValid && formik.dirty)}
@@ -176,7 +171,7 @@ const CompleteRegister: React.FC = () => {
             >
               <Link
                 to="/register"
-                className="text-gray-600 hover:text-gray-700"
+                className="theme-text-gray-600 hover:theme-text-gray-700 transition-colors duration-200"
               >
                 Voltar para o início
               </Link>

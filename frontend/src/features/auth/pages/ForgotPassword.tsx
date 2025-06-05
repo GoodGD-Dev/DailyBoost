@@ -6,13 +6,8 @@ import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { Mail } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@core'
-import {
-  AuthLayout,
-  clearError,
-  forgotPassword,
-  pageAnimations
-} from '@features'
-import { FormButton, FormInput } from '@shared'
+import { AuthLayout, clearError, forgotPassword } from '@auth'
+import { Btns, FormInput, pageAnimations } from '@shared'
 
 const ForgotPassword: React.FC = () => {
   // ========== HOOKS ==========
@@ -56,7 +51,7 @@ const ForgotPassword: React.FC = () => {
     <AuthLayout title="Esqueci a Senha">
       {isSubmitted ? (
         <motion.div variants={pageAnimations.item}>
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="theme-alert-success">
             <div className="flex items-center mb-2">
               <Mail className="w-5 h-5 mr-2" />
               <span className="font-medium">Email enviado!</span>
@@ -65,7 +60,7 @@ const ForgotPassword: React.FC = () => {
               Enviamos um email com instruções para redefinir sua senha. Por
               favor, verifique sua caixa de entrada.
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm theme-text-success-600">
               Redirecionando para a página inicial em alguns segundos...
             </p>
           </div>
@@ -74,7 +69,7 @@ const ForgotPassword: React.FC = () => {
             <div>
               <button
                 onClick={() => navigate('/')}
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="theme-link font-medium"
               >
                 Ir para página inicial agora
               </button>
@@ -82,7 +77,7 @@ const ForgotPassword: React.FC = () => {
             <div>
               <Link
                 to="/login"
-                className="text-gray-600 hover:text-gray-700 text-sm"
+                className="theme-text-gray-600 hover:theme-text-gray-700 text-sm transition-colors duration-200"
               >
                 Voltar para o login
               </Link>
@@ -92,7 +87,7 @@ const ForgotPassword: React.FC = () => {
       ) : (
         <form onSubmit={formik.handleSubmit}>
           <motion.p
-            className="text-gray-600 mb-6"
+            className="theme-text-gray-600 mb-6"
             variants={pageAnimations.item}
           >
             Digite seu email abaixo e enviaremos um link para redefinir sua
@@ -110,7 +105,7 @@ const ForgotPassword: React.FC = () => {
           />
 
           <motion.div className="mb-6" variants={pageAnimations.item}>
-            <FormButton
+            <Btns
               text="Enviar Link de Redefinição"
               loading={loading}
               disabled={!(formik.isValid && formik.dirty)}
@@ -122,7 +117,7 @@ const ForgotPassword: React.FC = () => {
             className="text-center text-sm"
             variants={pageAnimations.item}
           >
-            <Link to="/login" className="text-blue-600 hover:text-blue-700">
+            <Link to="/login" className="theme-link">
               Voltar para o login
             </Link>
           </motion.div>

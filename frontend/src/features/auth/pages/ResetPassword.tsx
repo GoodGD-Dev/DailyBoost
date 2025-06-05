@@ -6,13 +6,8 @@ import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { Key, CheckCircle } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@core'
-import {
-  clearError,
-  resetPassword,
-  pageAnimations,
-  AuthLayout
-} from '@features'
-import { FormButton, FormInput } from '@shared'
+import { clearError, resetPassword, AuthLayout } from '@features'
+import { Btns, FormInput, pageAnimations } from '@shared'
 
 const ResetPassword: React.FC = () => {
   // ========== HOOKS ==========
@@ -84,7 +79,7 @@ const ResetPassword: React.FC = () => {
       {isSuccess ? (
         // ========== ESTADO: SENHA REDEFINIDA COM SUCESSO ==========
         <motion.div variants={pageAnimations.item}>
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="theme-alert-success">
             <div className="flex items-center mb-2">
               <CheckCircle className="w-6 h-6 mr-2" />
               <span className="font-medium">Senha redefinida!</span>
@@ -96,10 +91,7 @@ const ResetPassword: React.FC = () => {
           </div>
 
           <div className="text-center">
-            <Link
-              to="/login"
-              className="text-blue-600 hover:text-blue-700 font-medium"
-            >
+            <Link to="/login" className="theme-link font-medium">
               Ir para o login agora
             </Link>
           </div>
@@ -108,7 +100,7 @@ const ResetPassword: React.FC = () => {
         // ========== ESTADO: FORMULÁRIO DE REDEFINIÇÃO ==========
         <form onSubmit={formik.handleSubmit}>
           <motion.p
-            className="text-gray-600 mb-6 text-center"
+            className="theme-text-gray-600 mb-6 text-center"
             variants={pageAnimations.item}
           >
             Digite sua nova senha abaixo.
@@ -134,7 +126,7 @@ const ResetPassword: React.FC = () => {
           />
 
           <motion.div className="mb-6" variants={pageAnimations.item}>
-            <FormButton
+            <Btns
               text="Redefinir Senha"
               loading={loading}
               disabled={!(formik.isValid && formik.dirty)}
@@ -146,7 +138,7 @@ const ResetPassword: React.FC = () => {
             className="text-center text-sm"
             variants={pageAnimations.item}
           >
-            <Link to="/login" className="text-blue-600 hover:text-blue-700">
+            <Link to="/login" className="theme-link">
               Voltar para o login
             </Link>
           </motion.div>

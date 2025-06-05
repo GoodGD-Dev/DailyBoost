@@ -1,6 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
-import { pageAnimations } from '@features'
+import { pageAnimations } from '@shared'
 
 // ========== INTERFACE SIMPLIFICADA ==========
 export interface AuthLayoutProps {
@@ -30,12 +30,9 @@ const AuthLayout: React.FC<AuthLayoutProps> = ({
       initial="hidden"
       animate="visible"
     >
-      <motion.div
-        className="bg-white rounded-lg shadow-md p-6 border border-gray-100"
-        variants={pageAnimations.item}
-      >
+      <motion.div className="theme-card p-6" variants={pageAnimations.item}>
         <motion.h1
-          className="text-2xl font-bold text-center mb-6 text-gray-800"
+          className="text-2xl font-bold text-center mb-6 theme-text-gray-800"
           variants={pageAnimations.item}
         >
           {title}

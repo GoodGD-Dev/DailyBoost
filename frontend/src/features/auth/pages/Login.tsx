@@ -6,14 +6,8 @@ import { toast } from 'react-toastify'
 import { motion } from 'framer-motion'
 import { LogIn } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@core'
-import {
-  AuthLayout,
-  clearError,
-  GoogleButton,
-  login,
-  pageAnimations
-} from '@features'
-import { FormButton, FormInput } from '@shared'
+import { AuthLayout, clearError, GoogleButton, login } from '@auth'
+import { Btns, FormInput, pageAnimations } from '@shared'
 
 const Login: React.FC = () => {
   // ========== HOOKS ==========
@@ -74,16 +68,13 @@ const Login: React.FC = () => {
         />
 
         <motion.div className="mb-4" variants={pageAnimations.item}>
-          <Link
-            to="/forgot-password"
-            className="text-sm text-blue-600 hover:text-blue-900"
-          >
+          <Link to="/forgot-password" className="text-sm theme-link">
             Esqueceu a senha?
           </Link>
         </motion.div>
 
         <motion.div className="mb-4" variants={pageAnimations.item}>
-          <FormButton
+          <Btns
             text="Entrar"
             loading={loading}
             disabled={!(formik.isValid && formik.dirty)}
@@ -97,10 +88,10 @@ const Login: React.FC = () => {
           variants={pageAnimations.item}
         >
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full border-t theme-border-gray-300"></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">ou</span>
+            <span className="px-2 theme-bg-white theme-text-gray-500">ou</span>
           </div>
         </motion.div>
 
@@ -114,8 +105,8 @@ const Login: React.FC = () => {
           className="text-center text-sm"
           variants={pageAnimations.item}
         >
-          Não tem uma conta?{' '}
-          <Link to="/register" className="text-blue-600 hover:text-blue-700">
+          <span className="theme-text-gray-600">Não tem uma conta? </span>
+          <Link to="/register" className="theme-link">
             Registre-se
           </Link>
         </motion.div>

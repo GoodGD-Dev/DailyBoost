@@ -5,7 +5,8 @@ import * as Yup from 'yup'
 import { toast } from 'react-toastify'
 import { Mail } from 'lucide-react'
 import { useAppDispatch, useAppSelector } from '@core'
-import { clearError, resetRegistration, startRegister } from '@features'
+import { clearError, resetRegistration, startRegister } from '@auth'
+import { Btns } from '@shared'
 
 const Register: React.FC = () => {
   // ========== HOOKS ==========
@@ -62,15 +63,15 @@ const Register: React.FC = () => {
 
   // ========== RENDER ==========
   return (
-    <div className="max-w-md mx-auto bg-white rounded-lg shadow-md p-6 border border-gray-100">
-      <h1 className="text-2xl font-bold text-center mb-6 text-gray-800">
+    <div className="max-w-md mx-auto theme-card p-6">
+      <h1 className="text-2xl font-bold text-center mb-6 theme-text-gray-800">
         Criar Conta
       </h1>
 
       {isSubmitted ? (
         // ========== ESTADO: EMAIL ENVIADO COM SUCESSO ==========
         <div className="space-y-4">
-          <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded mb-6">
+          <div className="theme-alert-success">
             {/* Ícone de email */}
             <div className="flex items-center mb-2">
               <Mail className="w-5 h-5 mr-2" />
@@ -80,14 +81,14 @@ const Register: React.FC = () => {
               Enviamos um link de confirmação para{' '}
               <strong>{registrationEmail}</strong>
             </p>
-            <p className="text-sm text-green-600">
+            <p className="text-sm theme-text-success-600">
               Clique no link recebido para completar seu registro com nome e
               senha.
             </p>
           </div>
 
           {/* Instruções adicionais */}
-          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded mb-6">
+          <div className="theme-alert-info">
             <p className="text-sm">
               <strong>Não recebeu o email?</strong>
             </p>
@@ -98,20 +99,22 @@ const Register: React.FC = () => {
             </ul>
           </div>
 
-          {/* Botões de ação */}
+          {/* ========== BOTÕES COM SEU COMPONENTE ========== */}
           <div className="space-y-3">
-            <button
+            {/* ✅ USANDO SEU COMPONENTE Btns */}
+            <Btns
+              text="Tentar com outro email"
+              type="button"
+              variant="primary"
+              size="md"
+              fullWidth={true}
+              loading={false}
+              disabled={false}
               onClick={handleTryAgain}
-              className="w-full px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
-            >
-              Tentar com outro email
-            </button>
+            />
 
             <div className="text-center">
-              <Link
-                to="/login"
-                className="text-blue-600 hover:text-blue-700 text-sm"
-              >
+              <Link to="/login" className="theme-link text-sm">
                 Voltar para o login
               </Link>
             </div>
@@ -121,16 +124,13 @@ const Register: React.FC = () => {
         // ========== ESTADO: FORMULÁRIO DE EMAIL ==========
         <form onSubmit={formik.handleSubmit}>
           <div className="space-y-4">
-            <p className="text-gray-600 text-center">
+            <p className="theme-text-gray-600 text-center">
               Vamos começar com seu email. Enviaremos um link para você
               completar o registro.
             </p>
 
             <div>
-              <label
-                htmlFor="email"
-                className="block text-gray-700 mb-2 font-medium"
-              >
+              <label htmlFor="email" className="theme-label">
                 Email
               </label>
               <input
@@ -139,36 +139,45 @@ const Register: React.FC = () => {
                 {...formik.getFieldProps('email')}
                 placeholder="seu@email.com"
                 disabled={loading}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:opacity-50"
+                className={`theme-input ${
+                  formik.touched.email && formik.errors.email
+                    ? 'theme-input-error'
+                    : ''
+                } ${loading ? 'opacity-50' : ''}`}
               />
               {formik.touched.email && formik.errors.email ? (
-                <div className="text-red-500 text-sm mt-1">
+                <div className="theme-error-message">
+                  <svg
+                    className="w-4 h-4 mr-1 flex-shrink-0"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
                   {formik.errors.email}
                 </div>
               ) : null}
             </div>
 
-            <button
+            {/* ========== BOTÃO DE SUBMIT COM SEU COMPONENTE ========== */}
+            <Btns
+              text="Enviar Link de Registro"
               type="submit"
-              disabled={!(formik.isValid && formik.dirty) || loading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200 disabled:opacity-60 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Enviando...
-                </>
-              ) : (
-                <>
-                  <Mail className="h-4 w-4" />
-                  Enviar Link de Registro
-                </>
-              )}
-            </button>
+              variant="primary"
+              size="md"
+              fullWidth={true}
+              loading={loading}
+              disabled={!(formik.isValid && formik.dirty)}
+              icon={<Mail className="h-4 w-4" />}
+            />
 
             <div className="text-center text-sm">
-              Já tem uma conta?{' '}
-              <Link to="/login" className="text-blue-600 hover:text-blue-700">
+              <span className="theme-text-gray-600">Já tem uma conta? </span>
+              <Link to="/login" className="theme-link">
                 Faça login
               </Link>
             </div>

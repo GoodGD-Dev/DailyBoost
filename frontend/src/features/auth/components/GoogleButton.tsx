@@ -2,8 +2,8 @@ import React, { useState } from 'react'
 import { toast } from 'react-toastify'
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
 import { motion } from 'framer-motion'
-import { auth, useAppDispatch } from '@core'
-import { googleLogin, FirebaseError } from '@features'
+import { useAppDispatch } from '@core'
+import { auth, googleLogin, FirebaseError } from '@auth'
 
 const GoogleButton: React.FC = () => {
   // ========== HOOKS ==========
@@ -106,7 +106,17 @@ const GoogleButton: React.FC = () => {
     <motion.button
       onClick={handleGoogleLogin}
       disabled={loading}
-      className="w-full flex justify-center items-center bg-white border border-gray-300 rounded-md py-2 px-4 text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200"
+      className={`
+        w-full flex justify-center items-center
+        theme-bg-white theme-border-gray-300 border rounded-md py-2 px-4
+        theme-text-gray-700 transition-all duration-200
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500
+        ${
+          loading
+            ? 'opacity-60 cursor-not-allowed'
+            : 'hover:theme-bg-gray-50 hover:theme-border-gray-400'
+        }
+      `}
       // ========== ANIMAÇÕES FRAMER MOTION ==========
       whileHover={{ scale: loading ? 1 : 1.02 }}
       whileTap={{ scale: loading ? 1 : 0.98 }}
@@ -116,7 +126,7 @@ const GoogleButton: React.FC = () => {
       {loading ? (
         // ========== SPINNER DE CARREGAMENTO ==========
         <svg
-          className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
+          className="animate-spin -ml-1 mr-2 h-4 w-4 theme-text-gray-700"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -160,7 +170,7 @@ const GoogleButton: React.FC = () => {
         </svg>
       )}
       {/* Texto do botão - sempre visível */}
-      Continuar com Google
+      <span className="theme-text-gray-700">Continuar com Google</span>
     </motion.button>
   )
 }

@@ -4,7 +4,7 @@ import { Header, Footer } from '@shared'
 
 const MainLayout: React.FC = () => {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col theme-bg-gray-50">
       {/* ========== HEADER ========== */}
       <Header />
 

@@ -15,12 +15,10 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   return (
     <div className={className}>
-      <div className="card">
+      <div className="theme-card">
         <div className="flex flex-col justify-center items-center h-40">
-          <div
-            className={`${sizeClasses[size]} border-4 border-primary-200 border-t-primary-600 rounded-full animate-spin mb-3`}
-          ></div>
-          <p className="text-gray-600">{message}</p>
+          <div className={`${sizeClasses[size]} theme-spinner mb-3`}></div>
+          <p className="theme-text-gray-600">{message}</p>
         </div>
       </div>
     </div>

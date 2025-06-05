@@ -1,7 +1,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { useAppSelector } from '@core'
-import { formVariants } from '@features'
+import { formVariants } from '@shared'
 
 const Dashboard: React.FC = () => {
   const { user } = useAppSelector((state) => state.auth)
@@ -13,13 +13,10 @@ const Dashboard: React.FC = () => {
       animate="visible"
     >
       {/* ===== SEÇÃO PRINCIPAL DO DASHBOARD ===== */}
-      <motion.div
-        className="bg-white rounded-lg shadow-md p-6"
-        variants={formVariants.item}
-      >
+      <motion.div className="theme-card p-6" variants={formVariants.item}>
         {/* Título da página */}
         <motion.h2
-          className="text-2xl font-bold mb-6"
+          className="text-2xl font-bold mb-6 theme-text-gray-800"
           variants={formVariants.item}
         >
           Dashboard
@@ -27,28 +24,33 @@ const Dashboard: React.FC = () => {
 
         {/* Card de boas-vindas com informações do usuário */}
         <motion.div
-          className="bg-blue-50 p-4 rounded-lg mb-6"
+          className="theme-bg-primary-50 p-4 rounded-lg mb-6"
           variants={formVariants.item}
         >
-          <h3 className="text-lg font-semibold text-blue-700 mb-2">
+          <h3 className="text-lg font-semibold theme-text-primary-700 mb-2">
             Bem-vindo(a), {user?.name}!
           </h3>
-          <p className="text-blue-600">Seu email: {user?.email}</p>
+          <p className="theme-text-primary-600">Seu email: {user?.email}</p>
         </motion.div>
 
         {/* Texto explicativo sobre a área protegida */}
-        <motion.p className="text-gray-600 mb-6" variants={formVariants.item}>
+        <motion.p
+          className="theme-text-gray-600 mb-6"
+          variants={formVariants.item}
+        >
           Esta é a área protegida da aplicação. Você só tem acesso a esta página
           porque está autenticado e seu email foi verificado.
         </motion.p>
 
         {/* Status da conta do usuário */}
         <motion.div className="space-y-4" variants={formVariants.item}>
-          <div className="border border-gray-200 rounded-lg p-4">
-            <h4 className="font-medium text-gray-700 mb-2">Status da Conta</h4>
+          <div className="border theme-border-gray-200 rounded-lg p-4">
+            <h4 className="font-medium theme-text-gray-700 mb-2">
+              Status da Conta
+            </h4>
             <div className="flex items-center">
-              <span className="inline-block w-3 h-3 bg-green-500 rounded-full mr-2"></span>
-              <span className="text-green-600">Ativa</span>
+              <span className="inline-block w-3 h-3 theme-bg-success-500 rounded-full mr-2"></span>
+              <span className="theme-text-success-600">Ativa</span>
             </div>
           </div>
         </motion.div>
@@ -60,14 +62,14 @@ const Dashboard: React.FC = () => {
         variants={formVariants.item}
       >
         {/* CARD 1: Funcionalidades já implementadas */}
-        <div className="bg-white rounded-lg shadow-md p-6 bg-gradient-to-br from-blue-50 to-indigo-50">
-          <h3 className="text-lg font-semibold text-blue-700 mb-4">
+        <div className="theme-card p-6 bg-gradient-to-br from-primary-50 to-primary-100">
+          <h3 className="text-lg font-semibold theme-text-primary-700 mb-4">
             Funcionalidades Implementadas
           </h3>
-          <ul className="space-y-2 text-gray-700">
+          <ul className="space-y-2 theme-text-gray-700">
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-green-500 mr-2"
+                className="w-5 h-5 theme-text-success-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -84,7 +86,7 @@ const Dashboard: React.FC = () => {
             </li>
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-green-500 mr-2"
+                className="w-5 h-5 theme-text-success-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -101,7 +103,7 @@ const Dashboard: React.FC = () => {
             </li>
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-green-500 mr-2"
+                className="w-5 h-5 theme-text-success-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -118,7 +120,7 @@ const Dashboard: React.FC = () => {
             </li>
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-green-500 mr-2"
+                className="w-5 h-5 theme-text-success-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -133,18 +135,35 @@ const Dashboard: React.FC = () => {
               </svg>
               Rotas Protegidas
             </li>
+            <li className="flex items-center">
+              <svg
+                className="w-5 h-5 theme-text-success-500 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M5 13l4 4L19 7"
+                ></path>
+              </svg>
+              Sistema de Temas Dinâmico
+            </li>
           </ul>
         </div>
 
         {/* CARD 2: Próximos passos e melhorias futuras */}
-        <div className="bg-white rounded-lg shadow-md p-6 bg-gradient-to-br from-purple-50 to-pink-50">
-          <h3 className="text-lg font-semibold text-purple-700 mb-4">
+        <div className="theme-card p-6 bg-gradient-to-br from-secondary-50 to-secondary-100">
+          <h3 className="text-lg font-semibold theme-text-secondary-700 mb-4">
             Próximos Passos
           </h3>
-          <ul className="space-y-2 text-gray-700">
+          <ul className="space-y-2 theme-text-gray-700">
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-purple-500 mr-2"
+                className="w-5 h-5 theme-text-secondary-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -161,7 +180,7 @@ const Dashboard: React.FC = () => {
             </li>
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-purple-500 mr-2"
+                className="w-5 h-5 theme-text-secondary-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -178,7 +197,7 @@ const Dashboard: React.FC = () => {
             </li>
             <li className="flex items-center">
               <svg
-                className="w-5 h-5 text-purple-500 mr-2"
+                className="w-5 h-5 theme-text-secondary-500 mr-2"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -192,6 +211,23 @@ const Dashboard: React.FC = () => {
                 ></path>
               </svg>
               Configurar permissões avançadas
+            </li>
+            <li className="flex items-center">
+              <svg
+                className="w-5 h-5 theme-text-secondary-500 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M9 5l7 7-7 7"
+                ></path>
+              </svg>
+              Modo offline e PWA
             </li>
           </ul>
         </div>

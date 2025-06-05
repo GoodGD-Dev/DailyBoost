@@ -1,12 +1,13 @@
 import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth'
-import { auth, apiClient } from '@core'
+import { apiClient } from '@core'
+import { auth } from '@auth'
 import type {
   User,
   LoginCredentials,
   CompleteRegisterData,
   AuthResponse,
   MessageResponse
-} from '../types/auth.types'
+} from '@auth'
 
 // ========== CLASSE DO SERVIÇO DE AUTENTICAÇÃO ==========
 class AuthService {
