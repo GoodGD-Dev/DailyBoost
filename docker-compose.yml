@@ -1,0 +1,60 @@
+version: "3.8"
+
+services:
+  mongodb:
+    image: mongo:6
+    container_name: login-app-mongodb
+    restart: always
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=rootpassword
+    networks:
+      - app-network
+
+  server:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: login-app-server
+    restart: always
+    ports:
+      - "5000:5000"
+    depends_on:
+      - mongodb
+    environment:
+      - NODE_ENV=production
+      - PORT=5000
+      - MONGO_URI=mongodb://root:rootpassword@mongodb:27017/login-app?authSource=admin
+      - JWT_SECRET=seu_secret_jwt
+      - JWT_EXPIRES_IN=7d
+      - FRONTEND_URL=http://localhost
+      - EMAIL_SERVICE=gmail
+      - EMAIL_USER=seu-email@gmail.com
+      - EMAIL_PASSWORD=sua-senha-app
+      - FIREBASE_PROJECT_ID=seu-projeto-id
+      - GOOGLE_CLIENT_ID=seu-google-client-id
+    networks:
+      - app-network
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    container_name: login-app-client
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
+    driver: local

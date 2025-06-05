@@ -37,10 +37,10 @@
         "src/features/*"
       ],
       "@pages": [
-        "src/pages"
+        "src/shared/pages"
       ],
       "@pages/*": [
-        "src/pages/*"
+        "src/shared/pages/*"
       ],
       "@shared": [
         "src/shared"

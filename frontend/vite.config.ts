@@ -12,7 +12,12 @@ export default defineConfig({
       '@pages': path.resolve(__dirname, './src/pages'),
       '@shared': path.resolve(__dirname, './src/shared'),
       '@styles': path.resolve(__dirname, './src/styles'),
-      bootstrap: path.resolve(__dirname, 'node_modules/bootstrap')
+      'firebase/app': 'firebase/app',
+      'firebase/auth': 'firebase/auth',
+      'firebase/analytics': 'firebase/analytics'
     }
+  },
+  optimizeDeps: {
+    include: ['firebase/app', 'firebase/auth']
   }
 })
