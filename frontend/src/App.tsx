@@ -1,8 +1,8 @@
 import React, { useEffect } from 'react'
 import { AnimatePresence } from 'framer-motion'
 import { useAppDispatch, useAppSelector, Router } from '@core'
+import { loadUser } from '@auth'
 import { LoadingScreen } from '@shared'
-import { loadUser } from '@features'
 
 const App: React.FC = () => {
   const dispatch = useAppDispatch()

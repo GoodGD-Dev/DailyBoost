@@ -1,0 +1,251 @@
+<%- include('layout', { body: `
+<!-- Page Header -->
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="bi bi-person-circle me-2"></i>
+        Detalhes do Usuário
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="/admin/users" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- User Information -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header d-flex align-items-center">
+                <% if (targetUser.isAdmin) { %>
+                    <i class="bi bi-shield-check-fill text-success me-2" style="font-size: 1.5rem;"></i>
+                <% } else { %>
+                    <i class="bi bi-person-circle text-muted me-2" style="font-size: 1.5rem;"></i>
+                <% } %>
+                <h5 class="mb-0">
+                    <%= targetUser.name || 'Usuário sem nome' %>
+                    <% if (targetUser._id.toString() === user._id.toString()) { %>
+                        <span class="badge bg-info ms-2">Você</span>
+                    <% } %>
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Informações Básicas</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Nome:</strong></td>
+                                <td><%= targetUser.name || 'Não informado' %></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email:</strong></td>
+                                <td><%= targetUser.email %></td>
+                            </tr>
+                            <tr>
+                                <td><strong>ID:</strong></td>
+                                <td><code><%= targetUser._id %></code></td>
+                            </tr>
+                            <tr>
+                                <td><strong>Tipo de Conta:</strong></td>
+                                <td>
+                                    <% if (targetUser.googleId) { %>
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-google me-1"></i>Google
+                                        </span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-envelope me-1"></i>Email/Senha
+                                        </span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <h6 class="text-muted">Status e Permissões</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Administrador:</strong></td>
+                                <td>
+                                    <% if (targetUser.isAdmin) { %>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Sim
+                                        </span>
+                                    <% } else { %>
+                                        <span class="badge bg-secondary">
+                                            <i class="bi bi-x-circle me-1"></i>Não
+                                        </span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Role:</strong></td>
+                                <td>
+                                    <span class="badge bg-<%= targetUser.role === 'admin' ? 'success' : targetUser.role === 'superadmin' ? 'danger' : 'secondary' %>">
+                                        <%= targetUser.role || 'user' %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Email Verificado:</strong></td>
+                                <td>
+                                    <% if (targetUser.isEmailVerified) { %>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Verificado
+                                        </span>
+                                    <% } else { %>
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-exclamation-triangle me-1"></i>Não verificado
+                                        </span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Status do Registro:</strong></td>
+                                <td>
+                                    <% if (targetUser.registrationToken) { %>
+                                        <span class="badge bg-warning">
+                                            <i class="bi bi-clock me-1"></i>Pendente
+                                        </span>
+                                    <% } else if (targetUser.name && (targetUser.password || targetUser.googleId)) { %>
+                                        <span class="badge bg-success">
+                                            <i class="bi bi-check-circle me-1"></i>Completo
+                                        </span>
+                                    <% } else { %>
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-x-circle me-1"></i>Incompleto
+                                        </span>
+                                    <% } %>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="row">
+                    <div class="col-12">
+                        <h6 class="text-muted">Datas Importantes</h6>
+                        <table class="table table-borderless">
+                            <tr>
+                                <td><strong>Cadastro:</strong></td>
+                                <td>
+                                    <%= new Date(targetUser.createdAt).toLocaleDateString('pt-BR') %> às 
+                                    <%= new Date(targetUser.createdAt).toLocaleTimeString('pt-BR') %>
+                                </td>
+                            </tr>
+                            <% if (targetUser.registrationCompletedAt) { %>
+                            <tr>
+                                <td><strong>Registro Completado:</strong></td>
+                                <td>
+                                    <%= new Date(targetUser.registrationCompletedAt).toLocaleDateString('pt-BR') %> às 
+                                    <%= new Date(targetUser.registrationCompletedAt).toLocaleTimeString('pt-BR') %>
+                                </td>
+                            </tr>
+                            <% } %>
+                            <% if (targetUser.registrationTokenExpires) { %>
+                            <tr>
+                                <td><strong>Token Expira em:</strong></td>
+                                <td>
+                                    <span class="text-<%= new Date(targetUser.registrationTokenExpires) > new Date() ? 'success' : 'danger' %>">
+                                        <%= new Date(targetUser.registrationTokenExpires).toLocaleDateString('pt-BR') %> às 
+                                        <%= new Date(targetUser.registrationTokenExpires).toLocaleTimeString('pt-BR') %>
+                                    </span>
+                                </td>
+                            </tr>
+                            <% } %>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Actions Sidebar -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-gear me-2"></i>Ações
+                </h6>
+            </div>
+            <div class="card-body">
+                <% if (targetUser._id.toString() !== user._id.toString()) { %>
+                    <div class="d-grid gap-2">
+                        <!-- Toggle Admin -->
+                        <form action="/admin/users/<%= targetUser._id %>/toggle-admin" method="POST">
+                            <button type="submit" 
+                                    class="btn btn-<%= targetUser.isAdmin ? 'warning' : 'success' %> w-100"
+                                    onclick="return confirm('<%= targetUser.isAdmin ? 'Remover privilégios de administrador?' : 'Tornar este usuário administrador?' %>')">
+                                <i class="bi bi-<%= targetUser.isAdmin ? 'shield-x' : 'shield-check' %> me-2"></i>
+                                <%= targetUser.isAdmin ? 'Remover Admin' : 'Tornar Admin' %>
+                            </button>
+                        </form>
+                        
+                        <!-- Delete User -->
+                        <form action="/admin/users/<%= targetUser._id %>/delete" method="POST">
+                            <button type="submit" 
+                                    class="btn btn-danger w-100"
+                                    onclick="return confirm('Tem certeza que deseja deletar este usuário?\\n\\nEsta ação não pode ser desfeita!')">
+                                <i class="bi bi-trash me-2"></i>
+                                Deletar Usuário
+                            </button>
+                        </form>
+                    </div>
+                <% } else { %>
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        <strong>Sua conta</strong><br>
+                        Você não pode alterar suas próprias permissões ou deletar sua conta através do painel administrativo.
+                    </div>
+                <% } %>
+            </div>
+        </div>
+        
+        <!-- User Stats -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6 class="mb-0">
+                    <i class="bi bi-graph-up me-2"></i>Estatísticas
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-6">
+                        <div class="border-end">
+                            <h4 class="text-primary">
+                                <%= Math.floor((new Date() - new Date(targetUser.createdAt)) / (1000 * 60 * 60 * 24)) %>
+                            </h4>
+                            <small class="text-muted">Dias desde<br>o cadastro</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <h4 class="text-<%= targetUser.isAdmin ? 'success' : 'secondary' %>">
+                            <%= targetUser.isAdmin ? 'ADMIN' : 'USER' %>
+                        </h4>
+                        <small class="text-muted">Nível de<br>acesso</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .table-borderless td {
+        border: none;
+        padding: 0.5rem 0;
+    }
+    
+    .card {
+        transition: transform 0.2s ease-in-out;
+    }
+    
+    .border-end {
+        border-right: 1px solid #dee2e6 !important;
+    }
+</style>
+` }) %>

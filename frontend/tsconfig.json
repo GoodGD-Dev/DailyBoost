@@ -36,11 +36,23 @@
       "@features/*": [
         "src/features/*"
       ],
+      "@auth": [
+        "src/features/auth"
+      ],
+      "@auth/*": [
+        "src/features/auth*"
+      ],
+      "@theme": [
+        "src/features/theme"
+      ],
+      "@theme/*": [
+        "src/features/theme*"
+      ],
       "@pages": [
-        "src/shared/pages"
+        "src/pages"
       ],
       "@pages/*": [
-        "src/shared/pages/*"
+        "src/pages/*"
       ],
       "@shared": [
         "src/shared"
@@ -53,10 +65,11 @@
       ],
       "@styles/*": [
         "src/styles/*"
-      ]
+      ],
     }
   },
   "include": [
-    "src"
+    "src",
+    "src/styles"
   ]
 }
