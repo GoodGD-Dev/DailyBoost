@@ -1,3 +1,8 @@
+const { connectDB, disconnectDB } = require('./database');
+const { validateEnvironment } = require('./environment');
+
 module.exports = {
-  connectDB: require('./database'),
+  database: connectDB,
+  disconnectDB,
+  validateEnvironment
 };

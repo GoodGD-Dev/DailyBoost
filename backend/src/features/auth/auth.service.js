@@ -1,6 +1,6 @@
 const crypto = require('crypto');
 const User = require('./auth.model');
-const { sendEmail } = require('../../utils/email.utils');
+const { sendEmail } = require('../../shared/utils/email.utils');
 const firebase = require('./config/firebase');
 
 /**
@@ -30,24 +30,46 @@ exports.cleanupExpiredRegistrations = async () => {
 
 /**
  * Função auxiliar para enviar email de continuação do registro
- * 
- * @param {string} email - Email do usuário
- * @param {string} token - Token de continuação do registro
  */
 const sendRegistrationContinuationEmail = async (email, token) => {
   const continueUrl = `${process.env.FRONTEND_URL}/complete-register/${token}`;
 
   await sendEmail({
     to: email,
-    subject: 'Complete seu registro',
+    subject: 'Complete seu registro - ' + (process.env.APP_NAME || 'App'),
     html: `
-      <h1>Bem-vindo!</h1>
-      <p>Você iniciou o processo de registro em nossa aplicação.</p>
-      <p>Para completar seu cadastro, clique no link abaixo e defina seu nome e senha:</p>
-      <a href="${continueUrl}" target="_blank" style="background: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; display: inline-block; margin: 16px 0;">Completar Registro</a>
-      <p><strong>⏰ Este link expira em 24 horas.</strong></p>
-      <p>Se você não solicitou este registro, ignore este email.</p>
-      <p>Atenciosamente,<br>Equipe Login App</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Bem-vindo!</h1>
+        </div>
+        
+        <div style="padding: 30px; background: #f9f9f9;">
+          <h2 style="color: #333;">Complete seu registro</h2>
+          <p style="color: #666; line-height: 1.6;">
+            Você iniciou o processo de registro em nossa aplicação.
+            Para completar seu cadastro, clique no botão abaixo e defina seu nome e senha:
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${continueUrl}" 
+               style="background: #4F46E5; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              Completar Registro
+            </a>
+          </div>
+          
+          <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404;"><strong>⏰ Este link expira em 24 horas.</strong></p>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">
+            Se você não solicitou este registro, ignore este email.
+          </p>
+        </div>
+        
+        <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 14px;">
+          <p style="margin: 0;">Atenciosamente,<br>Equipe ${process.env.APP_NAME || 'App'}</p>
+        </div>
+      </div>
     `
   });
 };
@@ -55,9 +77,6 @@ const sendRegistrationContinuationEmail = async (email, token) => {
 /**
  * Serviço para iniciar o processo de registro
  * Agora com melhor tratamento de registros expirados
- * 
- * @param {string} email - Email do usuário
- * @returns {Object} - Resposta com status e mensagem
  */
 exports.startUserRegistration = async (email) => {
   // Verificar se o usuário já existe e está completo
@@ -91,7 +110,7 @@ exports.startUserRegistration = async (email) => {
       registrationToken,
       registrationTokenExpires,
       isEmailVerified: true,
-      createdAt: new Date() // Para tracking
+      createdAt: new Date()
     });
   }
 
@@ -101,17 +120,13 @@ exports.startUserRegistration = async (email) => {
   return {
     success: true,
     message: 'Enviamos um link para seu email para completar o registro. Verifique sua caixa de entrada.',
-    expiresIn: '24 horas' // Info útil para o frontend
+    expiresIn: '24 horas'
   };
 };
 
 /**
- * MELHORADO: Serviço para completar o registro
+ * Serviço para completar o registro
  * Agora com melhor feedback de erro
- * 
- * @param {string} token - Token de continuação do registro
- * @param {Object} userData - Dados do usuário (nome e senha)
- * @returns {Object} - Usuário completo registrado
  */
 exports.completeUserRegistration = async (token, userData) => {
   const { name, password } = userData;
@@ -123,17 +138,18 @@ exports.completeUserRegistration = async (token, userData) => {
   });
 
   if (!user) {
-    // MELHORADO: Verifica se existe token expirado para dar feedback específico
+    // Verifica se existe token expirado para dar feedback específico
     const expiredUser = await User.findOne({ registrationToken: token });
 
     if (expiredUser) {
       const error = new Error('Link de registro expirado. Solicite um novo link.');
       error.statusCode = 410; // Gone
+      throw error;
     } else {
       const error = new Error('Token inválido. Verifique o link ou solicite um novo.');
       error.statusCode = 400;
+      throw error;
     }
-    throw error;
   }
 
   // Verificar se o registro já foi completado
@@ -146,9 +162,10 @@ exports.completeUserRegistration = async (token, userData) => {
   // Completar o registro
   user.name = name;
   user.password = password; // Será criptografada pelo middleware pre-save
-  user.registrationToken = undefined; // Remove o token
-  user.registrationTokenExpires = undefined; // Remove a data de expiração
-  user.registrationCompletedAt = new Date(); // NOVO: Timestamp de quando foi completado
+  user.registrationToken = undefined;
+  user.registrationTokenExpires = undefined;
+  user.registrationCompletedAt = new Date();
+  user.lastLoginAt = new Date();
   await user.save();
 
   console.log(`✅ Registro completado para: ${user.email}`);
@@ -156,26 +173,15 @@ exports.completeUserRegistration = async (token, userData) => {
   return user;
 };
 
-// RESTO DOS MÉTODOS PERMANECEM IGUAIS...
-// (loginUser, googleLoginUser, forgotUserPassword, resetUserPassword, getCurrentUser)
-
 /**
  * Serviço para login de usuário
  * Autentica o usuário com email e senha
- * 
- * @param {Object} credentials - Credenciais (email e senha)
- * @returns {Object} - Objeto do usuário autenticado
  */
 exports.loginUser = async (credentials) => {
   const { email, password } = credentials;
 
-  if (!email || !password) {
-    const error = new Error('Por favor, forneça email e senha');
-    error.statusCode = 400;
-    throw error;
-  }
-
   const user = await User.findOne({ email }).select('+password');
+
   if (!user) {
     const error = new Error('Credenciais inválidas');
     error.statusCode = 401;
@@ -189,15 +195,24 @@ exports.loginUser = async (credentials) => {
     throw error;
   }
 
+  // Verificar senha
+  const isMatch = await user.matchPassword(password);
+  if (!isMatch) {
+    const error = new Error('Credenciais inválidas');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  // Atualizar último login
+  user.lastLoginAt = new Date();
+  await user.save();
+
   return user;
 };
 
 /**
  * Serviço para login com Google
  * Autentica ou registra o usuário usando credenciais do Google
- * 
- * @param {string} idToken - Token de ID do Firebase/Google
- * @returns {Object} - Objeto do usuário autenticado
  */
 exports.googleLoginUser = async (idToken) => {
   try {
@@ -212,7 +227,9 @@ exports.googleLoginUser = async (idToken) => {
         name,
         email,
         googleId: uid,
-        isEmailVerified: email_verified // Confia na verificação do Google
+        isEmailVerified: email_verified,
+        registrationCompletedAt: new Date(),
+        lastLoginAt: new Date()
       });
     } else {
       // Atualizar o googleId se não existir
@@ -221,28 +238,30 @@ exports.googleLoginUser = async (idToken) => {
         // Se for um registro incompleto, completar com dados do Google
         if (!user.name) {
           user.name = name;
+          user.registrationCompletedAt = new Date();
         }
         user.isEmailVerified = email_verified;
-        await user.save();
       }
+      user.lastLoginAt = new Date();
+      await user.save();
     }
 
     return user;
   } catch (error) {
     console.error('Erro no login com Google:', error);
-    throw error;
+    const authError = new Error('Erro na autenticação com Google');
+    authError.statusCode = 401;
+    throw authError;
   }
 };
 
 /**
  * Serviço para recuperação de senha
  * Gera token e envia email para redefinição
- * 
- * @param {string} email - Email do usuário
- * @returns {Object} - Resposta com status e mensagem
  */
 exports.forgotUserPassword = async (email) => {
   const user = await User.findOne({ email });
+
   if (!user) {
     const error = new Error('Não existe uma conta com este email');
     error.statusCode = 404;
@@ -265,15 +284,40 @@ exports.forgotUserPassword = async (email) => {
 
   await sendEmail({
     to: user.email,
-    subject: 'Redefinição de senha',
+    subject: 'Redefinição de senha - ' + (process.env.APP_NAME || 'App'),
     html: `
-      <h1>Olá ${user.name},</h1>
-      <p>Você solicitou a redefinição de sua senha.</p>
-      <p>Por favor, clique no link abaixo para redefinir sua senha:</p>
-      <a href="${resetUrl}" target="_blank">Redefinir Senha</a>
-      <p>Este link expira em 1 hora.</p>
-      <p>Se você não solicitou esta redefinição, ignore este email.</p>
-      <p>Atenciosamente,<br>Equipe Login App</p>
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Redefinir Senha</h1>
+        </div>
+        
+        <div style="padding: 30px; background: #f9f9f9;">
+          <h2 style="color: #333;">Olá ${user.name},</h2>
+          <p style="color: #666; line-height: 1.6;">
+            Você solicitou a redefinição de sua senha.
+            Por favor, clique no botão abaixo para redefinir sua senha:
+          </p>
+          
+          <div style="text-align: center; margin: 30px 0;">
+            <a href="${resetUrl}" 
+               style="background: #dc3545; color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold;">
+              Redefinir Senha
+            </a>
+          </div>
+          
+          <div style="background: #fff3cd; border: 1px solid #ffeaa7; padding: 15px; border-radius: 8px; margin: 20px 0;">
+            <p style="margin: 0; color: #856404;"><strong>⏰ Este link expira em 1 hora.</strong></p>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">
+            Se você não solicitou esta redefinição, ignore este email.
+          </p>
+        </div>
+        
+        <div style="background: #333; color: white; padding: 20px; text-align: center; font-size: 14px;">
+          <p style="margin: 0;">Atenciosamente,<br>Equipe ${process.env.APP_NAME || 'App'}</p>
+        </div>
+      </div>
     `
   });
 
@@ -286,10 +330,6 @@ exports.forgotUserPassword = async (email) => {
 /**
  * Serviço para redefinição de senha
  * Valida o token e atualiza a senha do usuário
- * 
- * @param {string} token - Token de redefinição
- * @param {string} password - Nova senha
- * @returns {Object} - Resposta com status e mensagem
  */
 exports.resetUserPassword = async (token, password) => {
   const user = await User.findOne({
@@ -317,9 +357,6 @@ exports.resetUserPassword = async (token, password) => {
 /**
  * Serviço para obter informações do usuário atual
  * Retorna dados do usuário logado
- * 
- * @param {string} userId - ID do usuário
- * @returns {Object} - Dados do usuário
  */
 exports.getCurrentUser = async (userId) => {
   const user = await User.findById(userId);
@@ -330,10 +367,31 @@ exports.getCurrentUser = async (userId) => {
     throw error;
   }
 
-  return {
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    isEmailVerified: user.isEmailVerified
-  };
+  return user.getPublicData();
+};
+
+/**
+ * Serviço para atualizar perfil do usuário
+ */
+exports.updateUserProfile = async (userId, updateData) => {
+  const user = await User.findById(userId);
+
+  if (!user) {
+    const error = new Error('Usuário não encontrado');
+    error.statusCode = 404;
+    throw error;
+  }
+
+  // Campos permitidos para atualização
+  const allowedFields = ['name'];
+
+  allowedFields.forEach(field => {
+    if (updateData[field] !== undefined) {
+      user[field] = updateData[field];
+    }
+  });
+
+  await user.save();
+
+  return user.getPublicData();
 };

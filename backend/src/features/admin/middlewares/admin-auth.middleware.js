@@ -38,7 +38,9 @@ exports.loadAdminUser = async (req, res, next) => {
 
       if (!user || !user.isAdmin) {
         // Se usuário não existe mais ou não é mais admin, destroy session
-        req.session.destroy();
+        req.session.destroy((err) => {
+          if (err) console.error('Erro ao destruir sessão:', err);
+        });
         return res.redirect('/admin/login');
       }
 
@@ -54,10 +56,29 @@ exports.loadAdminUser = async (req, res, next) => {
       req.user = req.session.adminUser;
     } catch (error) {
       console.error('Erro ao carregar usuário admin:', error);
-      req.session.destroy();
+      req.session.destroy((err) => {
+        if (err) console.error('Erro ao destruir sessão:', err);
+      });
       return res.redirect('/admin/login');
     }
   }
+  next();
+};
 
+/**
+ * Middleware para verificar permissões específicas de admin
+ * Útil para operações mais sensíveis
+ */
+exports.requireSuperAdmin = (req, res, next) => {
+  if (!req.session || !req.session.adminUser) {
+    return res.redirect('/admin/login');
+  }
+
+  if (req.session.adminUser.role !== 'superadmin') {
+    req.flash('error', 'Acesso negado. Apenas super administradores.');
+    return res.redirect('/admin/dashboard');
+  }
+
+  req.user = req.session.adminUser;
   next();
 };

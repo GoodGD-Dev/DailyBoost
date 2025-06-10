@@ -1,93 +1,109 @@
 const cron = require('node-cron');
-const { runCleanup } = require('./cleanup.job');
+const { runCleanup, runDeepCleanup } = require('./cleanup.job');
 
 /**
  * Configuração dos jobs de limpeza automática
  */
-class Scheduler {
+class AuthScheduler {
   static jobs = {};
+  static isInitialized = false;
 
   /**
    * Inicializa todos os jobs programados
    */
   static init() {
-    console.log('📅 Inicializando scheduler de limpeza automática...');
+    if (this.isInitialized) {
+      console.log('⚠️ Auth scheduler já foi inicializado');
+      return;
+    }
 
-    // Job principal: Limpeza diária às 2h da manhã
-    this.jobs.dailyCleanup = cron.schedule('0 2 * * *', async () => {
-      const timestamp = new Date().toISOString();
-      console.log(`🕐 [${timestamp}] Executando limpeza diária automática...`);
+    console.log('📅 Inicializando Auth scheduler...');
 
-      try {
-        await runCleanup();
-        console.log(`✅ [${timestamp}] Limpeza diária concluída com sucesso`);
-      } catch (error) {
-        console.error(`❌ [${timestamp}] Erro na limpeza diária:`, error);
-      }
-    }, {
-      scheduled: true,
-      timezone: "America/Sao_Paulo"
-    });
+    try {
+      // Job principal: Limpeza diária às 2h da manhã
+      this.jobs.dailyCleanup = cron.schedule('0 2 * * *', async () => {
+        const timestamp = new Date().toISOString();
+        console.log(`🕐 [${timestamp}] Executando limpeza diária automática...`);
 
-    // Job opcional: Limpeza semanal mais profunda (domingo às 3h)
-    this.jobs.weeklyCleanup = cron.schedule('0 3 * * 0', async () => {
-      const timestamp = new Date().toISOString();
-      console.log(`🕐 [${timestamp}] Executando limpeza semanal...`);
+        try {
+          await runCleanup();
+          console.log(`✅ [${timestamp}] Limpeza diária concluída com sucesso`);
+        } catch (error) {
+          console.error(`❌ [${timestamp}] Erro na limpeza diária:`, error);
+        }
+      }, {
+        scheduled: true,
+        timezone: "America/Sao_Paulo"
+      });
 
-      try {
-        await runCleanup();
-        console.log(`✅ [${timestamp}] Limpeza semanal concluída com sucesso`);
-      } catch (error) {
-        console.error(`❌ [${timestamp}] Erro na limpeza semanal:`, error);
-      }
-    }, {
-      scheduled: true,
-      timezone: "America/Sao_Paulo"
-    });
+      // Job semanal: Limpeza profunda (domingo às 3h)
+      this.jobs.weeklyCleanup = cron.schedule('0 3 * * 0', async () => {
+        const timestamp = new Date().toISOString();
+        console.log(`🕐 [${timestamp}] Executando limpeza semanal...`);
 
-    console.log('✅ Scheduler configurado com sucesso!');
-    console.log('📋 Jobs ativos:');
-    console.log('   • Limpeza diária: Todo dia às 2h');
-    console.log('   • Limpeza semanal: Domingo às 3h');
+        try {
+          await runDeepCleanup();
+          console.log(`✅ [${timestamp}] Limpeza semanal concluída com sucesso`);
+        } catch (error) {
+          console.error(`❌ [${timestamp}] Erro na limpeza semanal:`, error);
+        }
+      }, {
+        scheduled: true,
+        timezone: "America/Sao_Paulo"
+      });
+
+      this.isInitialized = true;
+
+      console.log('✅ Auth scheduler configurado com sucesso!');
+      console.log('📋 Jobs ativos:');
+      console.log('  • Limpeza diária: Todo dia às 2h');
+      console.log('  • Limpeza semanal: Domingo às 3h');
+
+    } catch (error) {
+      console.error('❌ Erro ao inicializar Auth scheduler:', error);
+      throw error;
+    }
   }
 
   /**
    * Para todos os jobs
    */
   static stop() {
-    console.log('🛑 Parando todos os jobs...');
+    console.log('🛑 Parando Auth scheduler...');
 
     Object.keys(this.jobs).forEach(jobName => {
       if (this.jobs[jobName]) {
         this.jobs[jobName].stop();
-        console.log(`   • ${jobName} parado`);
+        console.log(`  • ${jobName} parado`);
       }
     });
 
     this.jobs = {};
-    console.log('✅ Todos os jobs foram parados');
+    this.isInitialized = false;
+    console.log('✅ Auth scheduler parado');
   }
 
   /**
    * Reinicia todos os jobs
    */
   static restart() {
-    console.log('🔄 Reiniciando scheduler...');
+    console.log('🔄 Reiniciando Auth scheduler...');
     this.stop();
     this.init();
   }
 
   /**
-   * Executa limpeza manual (útil para testes)
+   * Executa limpeza manual
    */
   static async runManualCleanup() {
-    console.log('🔧 Executando limpeza manual...');
+    console.log('🔧 Executando limpeza manual do Auth...');
+
     try {
       const result = await runCleanup();
-      console.log('✅ Limpeza manual concluída');
+      console.log('✅ Limpeza manual do Auth concluída');
       return result;
     } catch (error) {
-      console.error('❌ Erro na limpeza manual:', error);
+      console.error('❌ Erro na limpeza manual do Auth:', error);
       throw error;
     }
   }
@@ -97,15 +113,24 @@ class Scheduler {
    */
   static getStatus() {
     const activeJobs = Object.keys(this.jobs).filter(jobName =>
-      this.jobs[jobName] && this.jobs[jobName].running
+      this.jobs[jobName] && this.jobs[jobName].running !== false
     );
 
     return {
+      isInitialized: this.isInitialized,
       totalJobs: Object.keys(this.jobs).length,
       activeJobs: activeJobs.length,
-      jobs: activeJobs
+      jobs: activeJobs,
+      lastCheck: new Date().toISOString()
     };
+  }
+
+  /**
+   * Verifica se um job específico está rodando
+   */
+  static isJobRunning(jobName) {
+    return this.jobs[jobName] && this.jobs[jobName].running !== false;
   }
 }
 
-module.exports = Scheduler;
+module.exports = AuthScheduler;

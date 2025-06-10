@@ -1,14 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
 const flash = require('connect-flash');
-const { errorHandler } = require('./middlewares');
 
-// Rotas
-const authRoutes = require('./features/auth/auth.routes');
-const adminAuthRoutes = require('./features/admin/auth.routes');
-const adminRoutes = require('./features/admin/admin.routes');
+// Shared middlewares e utils
+const { errorHandler, corsConfig, sessionConfig } = require('./shared/middlewares');
+
+// Routes centralizadas
+const routes = require('./routes');
 
 // Inicializar o app Express
 const app = express();
@@ -22,15 +21,7 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Configurar sessões para o painel admin
-app.use(session({
-  secret: process.env.ADMIN_SESSION_SECRET || 'admin-supersecret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    secure: process.env.NODE_ENV === 'production', // HTTPS em produção
-    maxAge: 24 * 60 * 60 * 1000 // 24 horas
-  }
-}));
+app.use(sessionConfig);
 
 // Flash messages para o admin
 app.use(flash());
@@ -43,12 +34,8 @@ app.use('/api', cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Rotas da API
-app.use('/api/auth', authRoutes);
-
-// Rotas do painel admin
-app.use('/admin', adminAuthRoutes);  // Login/logout do admin
-app.use('/admin', adminRoutes);      // Dashboard e funcionalidades
+// Usar todas as rotas
+app.use('/', routes);
 
 // Redirecionar /admin para /admin/login ou /admin/dashboard
 app.get('/admin', (req, res) => {
@@ -57,16 +44,6 @@ app.get('/admin', (req, res) => {
   } else {
     res.redirect('/admin/login');
   }
-});
-
-// Rota para verificar se a API está rodando (health check)
-app.get('/api/health', (req, res) => {
-  res.status(200).json({
-    success: true,
-    message: 'API está funcionando',
-    environment: process.env.NODE_ENV || 'development',
-    timestamp: new Date().toISOString()
-  });
 });
 
 // Middleware para lidar com rotas não encontradas (404)

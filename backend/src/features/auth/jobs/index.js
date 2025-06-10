@@ -1,8 +1,6 @@
-const Scheduler = require('./scheduler');
-const { runCleanup, runManualCleanup } = require('./cleanup.job');
+const AuthScheduler = require('./scheduler');
 
 module.exports = {
-  Scheduler,
-  runCleanup,
-  runManualCleanup
+  AuthScheduler,
+  cleanup: require('./cleanup.job')
 };

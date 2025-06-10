@@ -1,5 +1,5 @@
 const authService = require('./auth.service');
-const { sendTokenResponse } = require('./utils/jwt.utils')
+const { sendTokenResponse } = require('./utils/jwt.utils');
 const { AuthScheduler } = require('./jobs');
 
 /**
@@ -10,11 +10,13 @@ const { AuthScheduler } = require('./jobs');
 exports.startRegister = async (req, res, next) => {
   try {
     const { email } = req.body;
+
     if (!email) {
       const error = new Error('Por favor, forneça um email');
       error.statusCode = 400;
       throw error;
     }
+
     const result = await authService.startUserRegistration(email);
     res.status(200).json(result);
   } catch (error) {
@@ -31,11 +33,13 @@ exports.completeRegister = async (req, res, next) => {
   try {
     const { token } = req.params;
     const { name, password } = req.body;
+
     if (!name || !password) {
       const error = new Error('Por favor, forneça nome e senha');
       error.statusCode = 400;
       throw error;
     }
+
     const user = await authService.completeUserRegistration(token, { name, password });
     // Envia token JWT para login automático após completar o registro
     sendTokenResponse(user, 201, res);
@@ -51,7 +55,15 @@ exports.completeRegister = async (req, res, next) => {
  */
 exports.login = async (req, res, next) => {
   try {
-    const user = await authService.loginUser(req.body);
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      const error = new Error('Email e senha são obrigatórios');
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const user = await authService.loginUser({ email, password });
     sendTokenResponse(user, 200, res);
   } catch (error) {
     next(error);
@@ -66,6 +78,13 @@ exports.login = async (req, res, next) => {
 exports.googleLogin = async (req, res, next) => {
   try {
     const { idToken } = req.body;
+
+    if (!idToken) {
+      const error = new Error('Token do Google é obrigatório');
+      error.statusCode = 400;
+      throw error;
+    }
+
     const user = await authService.googleLoginUser(idToken);
     sendTokenResponse(user, 200, res);
   } catch (error) {
@@ -81,6 +100,13 @@ exports.googleLogin = async (req, res, next) => {
 exports.forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
+
+    if (!email) {
+      const error = new Error('Email é obrigatório');
+      error.statusCode = 400;
+      throw error;
+    }
+
     const result = await authService.forgotUserPassword(email);
     res.status(200).json(result);
   } catch (error) {
@@ -97,6 +123,13 @@ exports.resetPassword = async (req, res, next) => {
   try {
     const { token } = req.params;
     const { password } = req.body;
+
+    if (!password) {
+      const error = new Error('Nova senha é obrigatória');
+      error.statusCode = 400;
+      throw error;
+    }
+
     const result = await authService.resetUserPassword(token, password);
     res.status(200).json(result);
   } catch (error) {
@@ -122,8 +155,28 @@ exports.getMe = async (req, res, next) => {
 };
 
 /**
+ * @desc Atualizar perfil do usuário
+ * @route PUT /api/auth/me
+ * @access Private
+ */
+exports.updateProfile = async (req, res, next) => {
+  try {
+    const { name } = req.body;
+    const user = await authService.updateUserProfile(req.user.id, { name });
+
+    res.status(200).json({
+      success: true,
+      message: 'Perfil atualizado com sucesso',
+      user
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
  * @desc Logout
- * @route GET /api/auth/logout
+ * @route POST /api/auth/logout
  * @access Private
  */
 exports.logout = (req, res) => {
@@ -131,6 +184,7 @@ exports.logout = (req, res) => {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
+
   res.status(200).json({
     success: true,
     message: 'Logout realizado com sucesso'
